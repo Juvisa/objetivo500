@@ -1,0 +1,19 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno — NUNCA subir (contiene SERVICE_ROLE_KEY)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

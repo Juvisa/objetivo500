@@ -1,0 +1,1267 @@
+import 'dotenv/config';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+// 100 preguntas de Lectura Crítica — difficulty 2 (medio×50) y 3 (difícil×50)
+// Énfasis: análisis retórico, falacias, intertextualidad, evaluación de argumentos,
+//          lectura crítica de medios y literatura compleja.
+
+const questions = [
+
+  // ══════════════════════════════════════════════════════
+  // BLOQUE A — ENSAYO FILOSÓFICO (medio, 1-7)
+  // ══════════════════════════════════════════════════════
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `Hannah Arendt, en "La condición humana", distingue tres actividades fundamentales: la labor (satisfacer necesidades biológicas), el trabajo (producir objetos duraderos) y la acción (actuar en el espacio público con otros). Para Arendt, la acción es la más humana de las tres porque es la única que crea historia y revela la identidad del actor. La modernidad, según ella, ha privilegiado la labor y el trabajo en detrimento de la acción, reduciéndolo todo a procesos económicos y técnicos.`,
+    stem: '¿Por qué Arendt considera la acción como la actividad más propiamente humana?',
+    options_json: {
+      A: 'Porque crea historia y revela la identidad del actor en el espacio público.',
+      B: 'Porque permite satisfacer las necesidades básicas de supervivencia.',
+      C: 'Porque produce objetos duraderos que trascienden la vida individual.',
+      D: 'Porque es la actividad que más dinero genera en la economía moderna.',
+    },
+    correct_index: 'A',
+    explanation: 'El texto lo dice explícitamente: la acción "crea historia y revela la identidad del actor", cualidades que la hacen superior a la labor y el trabajo.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `Hannah Arendt, en "La condición humana", distingue tres actividades fundamentales: la labor (satisfacer necesidades biológicas), el trabajo (producir objetos duraderos) y la acción (actuar en el espacio público con otros). Para Arendt, la acción es la más humana de las tres porque es la única que crea historia y revela la identidad del actor. La modernidad, según ella, ha privilegiado la labor y el trabajo en detrimento de la acción, reduciéndolo todo a procesos económicos y técnicos.`,
+    stem: 'La crítica de Arendt a la modernidad implica que las sociedades actuales:',
+    options_json: {
+      A: 'Han empobrecido la dimensión política y pública de la existencia humana.',
+      B: 'Han logrado el equilibrio perfecto entre las tres actividades.',
+      C: 'Han eliminado la labor para concentrarse en la acción.',
+      D: 'Han superado la necesidad de trabajo gracias a la tecnología.',
+    },
+    correct_index: 'A',
+    explanation: 'Privilegiar labor y trabajo "en detrimento de la acción" significa que lo político-público (la acción) ha sido desplazado; eso empobrece la vida humana.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `Hannah Arendt, en "La condición humana", distingue tres actividades fundamentales: la labor (satisfacer necesidades biológicas), el trabajo (producir objetos duraderos) y la acción (actuar en el espacio público con otros). Para Arendt, la acción es la más humana de las tres porque es la única que crea historia y revela la identidad del actor. La modernidad, según ella, ha privilegiado la labor y el trabajo en detrimento de la acción, reduciéndolo todo a procesos económicos y técnicos.`,
+    stem: 'Un trabajador que pasa toda su vida en una fábrica produciendo piezas sin participar en ningún espacio político estaría, según Arendt:',
+    options_json: {
+      A: 'Ejerciendo solo trabajo (y quizá labor), pero privado de la dimensión de la acción.',
+      B: 'Realizando la actividad más humana posible.',
+      C: 'Cumpliendo con las tres actividades simultáneamente.',
+      D: 'Revelando su identidad a través del producto que fabrica.',
+    },
+    correct_index: 'A',
+    explanation: 'Producir piezas = trabajo; sin acción política, el trabajador está privado de la actividad que Arendt considera más humana.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `Hannah Arendt, en "La condición humana", distingue tres actividades fundamentales: la labor (satisfacer necesidades biológicas), el trabajo (producir objetos duraderos) y la acción (actuar en el espacio público con otros). Para Arendt, la acción es la más humana de las tres porque es la única que crea historia y revela la identidad del actor. La modernidad, según ella, ha privilegiado la labor y el trabajo en detrimento de la acción, reduciéndolo todo a procesos económicos y técnicos.`,
+    stem: 'La expresión "en detrimento de" significa:',
+    options_json: { A: 'En perjuicio de / a expensas de', B: 'A favor de', C: 'En combinación con', D: 'Como resultado de' },
+    correct_index: 'A',
+    explanation: '"En detrimento" implica que algo se desarrolla causando daño o disminución a otra cosa.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `Hannah Arendt, en "La condición humana", distingue tres actividades fundamentales: la labor (satisfacer necesidades biológicas), el trabajo (producir objetos duraderos) y la acción (actuar en el espacio público con otros). Para Arendt, la acción es la más humana de las tres porque es la única que crea historia y revela la identidad del actor. La modernidad, según ella, ha privilegiado la labor y el trabajo en detrimento de la acción, reduciéndolo todo a procesos económicos y técnicos.`,
+    stem: '¿Cuál de las siguientes actividades correspondería a la "labor" según Arendt?',
+    options_json: {
+      A: 'Comer, dormir y reproducirse para mantener la vida biológica.',
+      B: 'Construir una catedral que dure siglos.',
+      C: 'Participar en un debate político sobre derechos civiles.',
+      D: 'Escribir una novela que defina una generación.',
+    },
+    correct_index: 'A',
+    explanation: 'La labor satisface necesidades biológicas inmediatas y cíclicas (comer, dormir); las otras opciones corresponden a trabajo o acción.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `Hannah Arendt, en "La condición humana", distingue tres actividades fundamentales: la labor (satisfacer necesidades biológicas), el trabajo (producir objetos duraderos) y la acción (actuar en el espacio público con otros). Para Arendt, la acción es la más humana de las tres porque es la única que crea historia y revela la identidad del actor. La modernidad, según ella, ha privilegiado la labor y el trabajo en detrimento de la acción, reduciéndolo todo a procesos económicos y técnicos.`,
+    stem: 'El texto menciona "La condición humana" entre comillas porque:',
+    options_json: {
+      A: 'Es el título de la obra donde Arendt desarrolla estas ideas.',
+      B: 'Es una expresión irónica que el autor del resumen cuestiona.',
+      C: 'Es un término filosófico en otro idioma.',
+      D: 'Indica que la autora dudaba del concepto.',
+    },
+    correct_index: 'A',
+    explanation: 'Las comillas señalan que es el título de un libro específico; es una convención tipográfica para títulos de obras.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `Hannah Arendt, en "La condición humana", distingue tres actividades fundamentales: la labor (satisfacer necesidades biológicas), el trabajo (producir objetos duraderos) y la acción (actuar en el espacio público con otros). Para Arendt, la acción es la más humana de las tres porque es la única que crea historia y revela la identidad del actor. La modernidad, según ella, ha privilegiado la labor y el trabajo en detrimento de la acción, reduciéndolo todo a procesos económicos y técnicos.`,
+    stem: 'Una posible objeción al argumento de Arendt sería:',
+    options_json: {
+      A: 'Que el trabajo artístico o intelectual también puede revelar la identidad y crear cultura duradera.',
+      B: 'Que la labor no existe en las sociedades modernas.',
+      C: 'Que la economía no tiene nada que ver con el trabajo.',
+      D: 'Que la acción política es la actividad menos valorada históricamente.',
+    },
+    correct_index: 'A',
+    explanation: 'Si el trabajo (ej. una obra de arte) también revela identidad y crea historia, la distinción entre trabajo y acción se debilita, lo que constituye una objeción válida.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+
+  // ══════════════════════════════════════════════════════
+  // BLOQUE B — TEXTO LITERARIO COMPLEJO (medio, 8-14)
+  // ══════════════════════════════════════════════════════
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `"Cien años de soledad comienza y termina con un pelotón de fusilamiento. Ese espejo circular no es casualidad: García Márquez construyó una novela que es también un palíndromo del tiempo. Macondo no crece; se repite. Sus habitantes no aprenden de la historia; la reviven. La condenación de los Buendía no es el olvido: es la memoria perfecta de lo que nunca debió repetirse."`,
+    stem: 'La comparación de la novela con un "palíndromo del tiempo" sugiere que:',
+    options_json: {
+      A: 'La estructura de la novela hace que el tiempo se lea igual hacia adelante que hacia atrás.',
+      B: 'La novela fue escrita en orden inverso.',
+      C: 'Macondo tiene una historia lineal y progresiva.',
+      D: 'Los personajes viajan en el tiempo constantemente.',
+    },
+    correct_index: 'A',
+    explanation: 'Un palíndromo se lee igual en ambas direcciones; aplicado al tiempo indica que la historia se repite circularmente, sin avance real.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `"Cien años de soledad comienza y termina con un pelotón de fusilamiento. Ese espejo circular no es casualidad: García Márquez construyó una novela que es también un palíndromo del tiempo. Macondo no crece; se repite. Sus habitantes no aprenden de la historia; la reviven. La condenación de los Buendía no es el olvido: es la memoria perfecta de lo que nunca debió repetirse."`,
+    stem: 'La "condenación" de los Buendía, según el texto, consiste en:',
+    options_json: {
+      A: 'Recordar con exactitud los errores sin poder evitar repetirlos.',
+      B: 'Olvidar su historia y comenzar desde cero cada generación.',
+      C: 'Ser fusilados al final de cada generación.',
+      D: 'Vivir aislados del resto del mundo en Macondo.',
+    },
+    correct_index: 'A',
+    explanation: '"La memoria perfecta de lo que nunca debió repetirse" indica que saben lo que ocurrió pero aun así lo repiten; esa es su tragedia.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `"Cien años de soledad comienza y termina con un pelotón de fusilamiento. Ese espejo circular no es casualidad: García Márquez construyó una novela que es también un palíndromo del tiempo. Macondo no crece; se repite. Sus habitantes no aprenden de la historia; la reviven. La condenación de los Buendía no es el olvido: es la memoria perfecta de lo que nunca debió repetirse."`,
+    stem: 'El "espejo circular" al que hace referencia el texto es una metáfora de:',
+    options_json: {
+      A: 'La estructura narrativa que conecta el inicio y el final de la novela reflejando el mismo destino.',
+      B: 'Un objeto mágico que los Buendía usan para predecir el futuro.',
+      C: 'La arquitectura circular de Macondo.',
+      D: 'El realismo mágico como género literario.',
+    },
+    correct_index: 'A',
+    explanation: 'El espejo circular representa que principio y fin son el mismo punto: el fusilamiento conecta ambos extremos de la novela formando un círculo.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `"Cien años de soledad comienza y termina con un pelotón de fusilamiento. Ese espejo circular no es casualidad: García Márquez construyó una novela que es también un palíndromo del tiempo. Macondo no crece; se repite. Sus habitantes no aprenden de la historia; la reviven. La condenación de los Buendía no es el olvido: es la memoria perfecta de lo que nunca debió repetirse."`,
+    stem: 'El texto argumenta que el tema central de "Cien años de soledad" es:',
+    options_json: {
+      A: 'La repetición histórica y la imposibilidad de escapar del pasado.',
+      B: 'La conquista española de América Latina.',
+      C: 'El amor imposible entre generaciones de los Buendía.',
+      D: 'La magia como explicación de la realidad latinoamericana.',
+    },
+    correct_index: 'A',
+    explanation: 'Todo el análisis gira en torno a que Macondo "se repite" y los personajes "reviven" la historia; la repetición es el eje temático identificado.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `"Cien años de soledad comienza y termina con un pelotón de fusilamiento. Ese espejo circular no es casualidad: García Márquez construyó una novela que es también un palíndromo del tiempo. Macondo no crece; se repite. Sus habitantes no aprenden de la historia; la reviven. La condenación de los Buendía no es el olvido: es la memoria perfecta de lo que nunca debió repetirse."`,
+    stem: 'El estilo del texto que analiza la novela es:',
+    options_json: {
+      A: 'Crítico-interpretativo, con un argumento sobre el significado estructural de la obra.',
+      B: 'Narrativo, recontando los eventos de la novela.',
+      C: 'Descriptivo, explicando los personajes sin interpretarlos.',
+      D: 'Instructivo, guiando al lector sobre cómo leer la novela.',
+    },
+    correct_index: 'A',
+    explanation: 'El texto no narra ni describe; interpreta y argumenta sobre el significado de la estructura circular de la novela.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `"Cien años de soledad comienza y termina con un pelotón de fusilamiento. Ese espejo circular no es casualidad: García Márquez construyó una novela que es también un palíndromo del tiempo. Macondo no crece; se repite. Sus habitantes no aprenden de la historia; la reviven. La condenación de los Buendía no es el olvido: es la memoria perfecta de lo que nunca debió repetirse."`,
+    stem: 'La afirmación "Macondo no crece; se repite" podría leerse como una crítica a:',
+    options_json: {
+      A: 'Las sociedades que no aprenden de sus errores históricos.',
+      B: 'La geografía tropical de Colombia.',
+      C: 'El uso del lenguaje en la novela latinoamericana.',
+      D: 'La falta de personajes femeninos en la obra.',
+    },
+    correct_index: 'A',
+    explanation: 'Macondo como espejo de Latinoamérica: la incapacidad de crecer simboliza la repetición de ciclos históricos (guerras, dictaduras, corrupción) sin aprendizaje.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `"Cien años de soledad comienza y termina con un pelotón de fusilamiento. Ese espejo circular no es casualidad: García Márquez construyó una novela que es también un palíndromo del tiempo. Macondo no crece; se repite. Sus habitantes no aprenden de la historia; la reviven. La condenación de los Buendía no es el olvido: es la memoria perfecta de lo que nunca debió repetirse."`,
+    stem: 'La paradoja central que el texto identifica en la novela es:',
+    options_json: {
+      A: 'Tener memoria perfecta y aun así repetir los errores, lo que hace inútil el recuerdo.',
+      B: 'Que los personajes son inmortales pero mueren al final.',
+      C: 'Que Macondo es real pero parece ficticio.',
+      D: 'Que la novela tiene cien capítulos pero se llama cien años.',
+    },
+    correct_index: 'A',
+    explanation: 'La paradoja: la memoria (que suele servir para no repetir errores) no evita la repetición en los Buendía, volviéndola inútil o incluso trágica.',
+    icfes_competency: 'Literatura',
+  },
+
+  // ══════════════════════════════════════════════════════
+  // BLOQUE C — MEDIOS Y FALACIAS (medio, 15-21)
+  // ══════════════════════════════════════════════════════
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 2,
+    context: `"El político declaró: 'Quien vote por mi oponente es un traidor a la patria.' Esta afirmación no argumenta sobre políticas públicas ni presenta evidencia; simplemente equipara el desacuerdo con la traición para inhibir la crítica. Este tipo de recurso retórico tiene un nombre en lógica informal: el argumento ad hominem, en su variante de ataque al carácter del adversario indirecto (el votante), buscando presión emocional en lugar de razón."`,
+    stem: '¿Qué falacia comete el político según el texto?',
+    options_json: {
+      A: 'Ad hominem: atacar al oponente (y a sus votantes) en lugar de argumentar con razones.',
+      B: 'Hombre de paja: distorsionar el argumento del contrario.',
+      C: 'Falsa dicotomía: presentar solo dos opciones cuando hay más.',
+      D: 'Pendiente resbaladiza: asumir que una acción llevará a consecuencias extremas.',
+    },
+    correct_index: 'A',
+    explanation: 'El texto lo identifica explícitamente como ad hominem: en lugar de discutir propuestas, ataca el carácter (traidor) del votante.',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 2,
+    context: `"El político declaró: 'Quien vote por mi oponente es un traidor a la patria.' Esta afirmación no argumenta sobre políticas públicas ni presenta evidencia; simplemente equipara el desacuerdo con la traición para inhibir la crítica. Este tipo de recurso retórico tiene un nombre en lógica informal: el argumento ad hominem, en su variante de ataque al carácter del adversario indirecto (el votante), buscando presión emocional en lugar de razón."`,
+    stem: 'El propósito de llamar "traidor" a quien vota diferente es principalmente:',
+    options_json: {
+      A: 'Inhibir el disenso mediante presión emocional y miedo al estigma social.',
+      B: 'Informar objetivamente sobre las consecuencias del voto.',
+      C: 'Comparar las propuestas de ambos candidatos.',
+      D: 'Motivar a los ciudadanos a participar en política.',
+    },
+    correct_index: 'A',
+    explanation: 'El texto lo dice: "inhibir la crítica" mediante "presión emocional"; la etiqueta "traidor" genera miedo al rechazo social, no ilumina el debate.',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 2,
+    context: `"El político declaró: 'Quien vote por mi oponente es un traidor a la patria.' Esta afirmación no argumenta sobre políticas públicas ni presenta evidencia; simplemente equipara el desacuerdo con la traición para inhibir la crítica. Este tipo de recurso retórico tiene un nombre en lógica informal: el argumento ad hominem, en su variante de ataque al carácter del adversario indirecto (el votante), buscando presión emocional en lugar de razón."`,
+    stem: 'Una respuesta racionalmente correcta al argumento del político sería:',
+    options_json: {
+      A: 'Señalar que votar por otro candidato no equivale a traición y pedir argumentos sobre propuestas concretas.',
+      B: 'Responder llamando traidor al político para equilibrar el debate.',
+      C: 'Aceptar la premisa y votar por el político para no ser considerado traidor.',
+      D: 'Abstenerse de votar para no tomar partido.',
+    },
+    correct_index: 'A',
+    explanation: 'Refutar la premisa falsa (disenso ≠ traición) y redirigir al argumento sustancial es la respuesta racional ante una falacia ad hominem.',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 2,
+    context: `"El titular decía: 'Científicos descubren que el chocolate previene el envejecimiento.' El artículo, en su párrafo 12, aclaraba: 'Un estudio preliminar con 20 ratones sugiere una posible correlación.' La distancia entre el titular y el contenido real es el corazón del clickbait científico."`,
+    stem: 'El texto señala que el "clickbait científico" consiste en:',
+    options_json: {
+      A: 'Usar titulares sensacionalistas que exageran o distorsionan hallazgos científicos preliminares.',
+      B: 'Publicar artículos científicos sin revisión por pares.',
+      C: 'Citar estudios falsos para captar lectores.',
+      D: 'Usar imágenes de chocolates en artículos de ciencia.',
+    },
+    correct_index: 'A',
+    explanation: 'La brecha entre "científicos descubren" (contundente) y "estudio preliminar con 20 ratones sugiere" (débil) muestra la exageración que define el clickbait.',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 2,
+    context: `"El titular decía: 'Científicos descubren que el chocolate previene el envejecimiento.' El artículo, en su párrafo 12, aclaraba: 'Un estudio preliminar con 20 ratones sugiere una posible correlación.' La distancia entre el titular y el contenido real es el corazón del clickbait científico."`,
+    stem: 'El hecho de que la aclaración estuviera en el "párrafo 12" es relevante porque:',
+    options_json: {
+      A: 'La mayoría de los lectores no llegan al párrafo 12, por lo que se quedan con la impresión falsa del titular.',
+      B: 'Demuestra que el artículo es muy largo y completo.',
+      C: 'Indica que la información importante siempre va al final.',
+      D: 'Sugiere que el autor no sabía organizar su texto.',
+    },
+    correct_index: 'A',
+    explanation: 'El dato crucial (limitaciones del estudio) está enterrado al final; esto es intencional: la mayoría lee el titular y abandona antes del párrafo 12.',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 2,
+    context: `"El titular decía: 'Científicos descubren que el chocolate previene el envejecimiento.' El artículo, en su párrafo 12, aclaraba: 'Un estudio preliminar con 20 ratones sugiere una posible correlación.' La distancia entre el titular y el contenido real es el corazón del clickbait científico."`,
+    stem: 'La palabra "correlación" en el artículo es diferente de "causalidad" porque:',
+    options_json: {
+      A: 'Correlación indica que dos variables están asociadas, no que una cause la otra.',
+      B: 'Correlación significa que el estudio fue probado en humanos.',
+      C: 'Correlación implica que el chocolate es definitivamente beneficioso.',
+      D: 'Correlación y causalidad son sinónimos en ciencia.',
+    },
+    correct_index: 'A',
+    explanation: 'Una correlación no implica causalidad: el chocolate y el envejecimiento podrían relacionarse por una tercera variable (nivel socioeconómico, dieta general, etc.).',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 2,
+    context: `"El titular decía: 'Científicos descubren que el chocolate previene el envejecimiento.' El artículo, en su párrafo 12, aclaraba: 'Un estudio preliminar con 20 ratones sugiere una posible correlación.' La distancia entre el titular y el contenido real es el corazón del clickbait científico."`,
+    stem: 'Un lector crítico ante este titular debería:',
+    options_json: {
+      A: 'Leer el artículo completo, buscar el tamaño de la muestra, el tipo de estudio y si fue revisado por pares.',
+      B: 'Compartir el titular inmediatamente en redes sociales.',
+      C: 'Descartar cualquier noticia que mencione ciencia.',
+      D: 'Confiar en el titular porque viene de un medio reconocido.',
+    },
+    correct_index: 'A',
+    explanation: 'La lectura crítica de medios exige verificar la fuente primaria, el diseño del estudio (muestra, metodología) y la revisión por pares antes de validar una afirmación.',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+
+  // ══════════════════════════════════════════════════════
+  // BLOQUE D — INTERTEXTUALIDAD (medio, 22-28)
+  // ══════════════════════════════════════════════════════
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `Texto 1 (Cervantes, 1605): "En un lugar de la Mancha, de cuyo nombre no quiero acordarme…"
+Texto 2 (Tabucchi, 1994): "En un lugar de Portugal, de cuyo nombre prefiero no acordarme…"
+El comienzo de Tabucchi es una cita oblicua del Quijote que crea, por contraste, un juego irónico entre la épica aventurera cervantina y la melancolía contemporánea portuguesa.`,
+    stem: 'La relación entre los dos textos es un ejemplo de:',
+    options_json: {
+      A: 'Intertextualidad: el segundo texto dialoga y resignifica al primero.',
+      B: 'Plagio: Tabucchi copió literalmente a Cervantes.',
+      C: 'Coincidencia estilística sin intención de referencia.',
+      D: 'Traducción del español al portugués.',
+    },
+    correct_index: 'A',
+    explanation: 'La variación intencional ("de cuyo nombre prefiero no acordarme") activa la memoria del Quijote en el lector; ese diálogo entre textos es intertextualidad.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `Texto 1 (Cervantes, 1605): "En un lugar de la Mancha, de cuyo nombre no quiero acordarme…"
+Texto 2 (Tabucchi, 1994): "En un lugar de Portugal, de cuyo nombre prefiero no acordarme…"
+El comienzo de Tabucchi es una cita oblicua del Quijote que crea, por contraste, un juego irónico entre la épica aventurera cervantina y la melancolía contemporánea portuguesa.`,
+    stem: 'El efecto que produce la variación ("prefiero" en lugar de "quiero") es:',
+    options_json: {
+      A: 'Matizar el rechazo: "prefiero" sugiere una elección reflexiva, más melancólica que la decisión rotunda de Cervantes.',
+      B: 'Mostrar que Tabucchi no conocía bien el texto original.',
+      C: 'Indicar que el personaje de Tabucchi es más valiente que Don Quijote.',
+      D: 'Corregir un error gramatical del texto cervantino.',
+    },
+    correct_index: 'A',
+    explanation: '"Quiero" (voluntad directa, épica) vs. "prefiero" (elección entre opciones, más reflexiva y dubitativa) genera el contraste tonal entre aventura y melancolía.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `Texto 1 (Cervantes, 1605): "En un lugar de la Mancha, de cuyo nombre no quiero acordarme…"
+Texto 2 (Tabucchi, 1994): "En un lugar de Portugal, de cuyo nombre prefiero no acordarme…"
+El comienzo de Tabucchi es una cita oblicua del Quijote que crea, por contraste, un juego irónico entre la épica aventurera cervantina y la melancolía contemporánea portuguesa.`,
+    stem: 'Para que el efecto intertextual funcione, el lector de Tabucchi debe:',
+    options_json: {
+      A: 'Conocer el inicio del Quijote y reconocerlo en la variación.',
+      B: 'Saber hablar portugués y español simultáneamente.',
+      C: 'Haber leído todos los libros de Tabucchi antes.',
+      D: 'Ignorar el Quijote para no contaminarse con otra obra.',
+    },
+    correct_index: 'A',
+    explanation: 'La intertextualidad requiere un lector competente que reconozca el hipotexto (el Quijote); sin ese reconocimiento, el efecto se pierde.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `Texto 1 (Cervantes, 1605): "En un lugar de la Mancha, de cuyo nombre no quiero acordarme…"
+Texto 2 (Tabucchi, 1994): "En un lugar de Portugal, de cuyo nombre prefiero no acordarme…"
+El comienzo de Tabucchi es una cita oblicua del Quijote que crea, por contraste, un juego irónico entre la épica aventurera cervantina y la melancolía contemporánea portuguesa.`,
+    stem: 'La "cita oblicua" se diferencia de una cita directa en que:',
+    options_json: {
+      A: 'Alude al texto original sin reproducirlo exactamente, transformándolo.',
+      B: 'Aparece entre comillas con la referencia bibliográfica completa.',
+      C: 'Es una paráfrasis que cambia el significado completamente.',
+      D: 'Solo puede aparecer en textos académicos formales.',
+    },
+    correct_index: 'A',
+    explanation: 'Una cita oblicua evoca sin copiar textualmente; la variación crea nuevo significado en lugar de simplemente reproducir.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `Texto 1 (Cervantes, 1605): "En un lugar de la Mancha, de cuyo nombre no quiero acordarme…"
+Texto 2 (Tabucchi, 1994): "En un lugar de Portugal, de cuyo nombre prefiero no acordarme…"
+El comienzo de Tabucchi es una cita oblicua del Quijote que crea, por contraste, un juego irónico entre la épica aventurera cervantina y la melancolía contemporánea portuguesa.`,
+    stem: 'El contraste entre "épica aventurera" y "melancolía contemporánea" que señala el texto refleja:',
+    options_json: {
+      A: 'Un cambio en el espíritu literario de los siglos XVII y XX respectivamente.',
+      B: 'Que Tabucchi era un escritor triste y Cervantes uno alegre.',
+      C: 'Que Portugal es más melancólico que España geográficamente.',
+      D: 'Que el siglo XX produjo peores novelas que el XVII.',
+    },
+    correct_index: 'A',
+    explanation: 'La épica del Siglo de Oro (aventura, heroísmo) contrasta con la sensibilidad posmoderna del siglo XX (duda, melancolía, saudade portuguesa).',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `Texto 1 (Cervantes, 1605): "En un lugar de la Mancha, de cuyo nombre no quiero acordarme…"
+Texto 2 (Tabucchi, 1994): "En un lugar de Portugal, de cuyo nombre prefiero no acordarme…"
+El comienzo de Tabucchi es una cita oblicua del Quijote que crea, por contraste, un juego irónico entre la épica aventurera cervantina y la melancolía contemporánea portuguesa.`,
+    stem: '¿Cuál es la ironía que el texto analítico identifica en el inicio de Tabucchi?',
+    options_json: {
+      A: 'Invocar la más famosa aventura literaria para iniciar una obra de tono melancólico y contemplativo.',
+      B: 'Que Tabucchi escribió en portugués siendo italiano.',
+      C: 'Que el lugar de Portugal sí se menciona más adelante en la novela.',
+      D: 'Que Cervantes también era de origen portugués.',
+    },
+    correct_index: 'A',
+    explanation: 'La ironía: evocar el texto que inicia la tradición de la novela de aventuras para iniciar una novela de introspección y melancolía; la expectativa y la realidad divergen.',
+    icfes_competency: 'Literatura',
+  },
+
+  // ══════════════════════════════════════════════════════
+  // BLOQUE E — TEXTO MEDIO RESTANTE (medio, 29-50)
+  // ══════════════════════════════════════════════════════
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `"El silencio también comunica. En una conversación, guardar silencio puede significar acuerdo, desacuerdo, reflexión, indiferencia o miedo. La pragmática del lenguaje estudia cómo el contexto determina el significado real de los enunciados, incluyendo lo que no se dice."`,
+    stem: 'La "pragmática del lenguaje" se distingue de la gramática porque:',
+    options_json: {
+      A: 'Estudia el significado en contexto, no solo las reglas formales de la lengua.',
+      B: 'Solo analiza textos escritos, no conversaciones.',
+      C: 'Se ocupa únicamente del vocabulario y la ortografía.',
+      D: 'Ignora la intención del hablante.',
+    },
+    correct_index: 'A',
+    explanation: 'La pragmática analiza el uso real del lenguaje en situaciones concretas; la gramática analiza reglas abstractas. El contexto es el elemento diferenciador.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `"El lenguaje no es neutro. Llamar 'conflicto armado' o 'guerra civil' a un mismo evento no es indiferente: cada denominación activa un marco ideológico diferente. El conflicto armado sugiere una disputa localizada y controlable; la guerra civil, una fractura total de la nación. Los medios eligen sus palabras y con ellas construyen la realidad que narran."`,
+    stem: 'La tesis del texto es que el lenguaje periodístico:',
+    options_json: {
+      A: 'No es neutral: la elección de palabras encuadra la realidad ideológicamente.',
+      B: 'Debe ser siempre objetivo y libre de todo marco ideológico.',
+      C: 'Solo importa para los políticos, no para los ciudadanos.',
+      D: 'Refleja la realidad tal como es, sin distorsionarla.',
+    },
+    correct_index: 'A',
+    explanation: '"Los medios eligen sus palabras y con ellas construyen la realidad que narran" es la tesis explícita del texto.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `"Un argumento válido puede tener conclusiones falsas si sus premisas son falsas. Por eso, en lógica, se distingue la validez (la forma del argumento es correcta) de la solidez (la forma es correcta Y las premisas son verdaderas). Un argumento puede ser válido pero no sólido."`,
+    stem: '¿Cuál de los siguientes argumentos es válido pero no sólido?',
+    options_json: {
+      A: 'Todos los peces vuelan (falso). Nemo es un pez. Por lo tanto, Nemo vuela. (La forma es correcta, pero la premisa es falsa.)',
+      B: 'Todos los humanos son mortales. Sócrates es humano. Sócrates es mortal. (Válido y sólido.)',
+      C: 'El sol sale por el oeste. El cielo es azul. Por lo tanto, mañana lloverá. (Inválido y no sólido.)',
+      D: 'Si llueve, el suelo se moja. Está lloviendo. El suelo está mojado. (Válido y sólido.)',
+    },
+    correct_index: 'A',
+    explanation: 'La forma (todos A son B; X es A; X es B) es válida, pero la premisa "todos los peces vuelan" es falsa; por tanto el argumento es válido pero no sólido.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 2,
+    context: `"Una fotografía periodística no es un espejo de la realidad: es una selección. El fotógrafo elige el ángulo, el momento, el encuadre y, en la edición, el recorte. Dos fotos del mismo evento pueden contar historias opuestas dependiendo de quién tome la cámara y con qué intención."`,
+    stem: 'El texto argumenta que la fotografía periodística es:',
+    options_json: {
+      A: 'Una construcción subjetiva que depende de elecciones técnicas e intencionales del fotógrafo.',
+      B: 'Un registro objetivo y neutro de los hechos.',
+      C: 'Menos confiable que los textos escritos.',
+      D: 'Solo válida cuando no ha sido editada digitalmente.',
+    },
+    correct_index: 'A',
+    explanation: 'Ángulo, momento, encuadre, recorte e intención son elecciones subjetivas que convierten la foto en una construcción, no en un espejo.',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `"La antinovela del siglo XX rompe con el pacto realista: el narrador no es omnisciente, la cronología se fragmenta, el personaje pierde consistencia psicológica. Robbe-Grillet y Sarraute no quieren representar la realidad; quieren interrogar los mecanismos mediante los cuales la literatura cree representarla."`,
+    stem: 'El "pacto realista" que la antinovela rompe consiste en:',
+    options_json: {
+      A: 'El acuerdo implícito entre narrador y lector de que la ficción representa la realidad de manera coherente.',
+      B: 'Un contrato legal entre el escritor y la editorial.',
+      C: 'La obligación de escribir sobre temas sociales y políticos.',
+      D: 'El uso de un lenguaje sencillo accesible a todos los lectores.',
+    },
+    correct_index: 'A',
+    explanation: 'El realismo literario asume que la novela puede representar el mundo fielmente; la antinovela cuestiona ese supuesto.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `"Los datos duros sin narrativa son ruido. La narrativa sin datos es ficción. El buen periodismo de datos une la rigurosidad cuantitativa con el arte de contar una historia que importe."`,
+    stem: 'La estructura del texto ("Los datos sin…; La narrativa sin…; El buen periodismo…") es:',
+    options_json: {
+      A: 'Tesis antitética que culmina en una síntesis superadora.',
+      B: 'Una lista desordenada de problemas periodísticos.',
+      C: 'Una narración cronológica del periodismo.',
+      D: 'Una comparación entre dos medios de comunicación.',
+    },
+    correct_index: 'A',
+    explanation: 'Es estructura dialéctica: tesis (datos solos = ruido), antítesis (narrativa sola = ficción), síntesis (unión de ambos = buen periodismo).',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `"El argumento de autoridad ('lo dijo el doctor X') es legítimo si la autoridad es real, relevante y no tiene conflicto de intereses. Si un cardiológo habla de enfermedades del corazón, su autoridad es pertinente. Si el mismo cardiólogo opina sobre economía, su título médico no avala su opinión económica."`,
+    stem: 'El texto señala que el argumento de autoridad falla cuando:',
+    options_json: {
+      A: 'La autoridad citada no es experta en el tema específico sobre el que opina.',
+      B: 'El experto tiene más de un título académico.',
+      C: 'La opinión del experto coincide con la del autor.',
+      D: 'El experto es muy famoso y conocido por el público.',
+    },
+    correct_index: 'A',
+    explanation: 'La pertinencia de la autoridad depende del dominio: un cardiólogo es autoridad en cardiología, no en economía. Fuera de su campo, el argumento de autoridad falla.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `"En 'La metamorfosis', Kafka no explica la transformación de Gregor en insecto ni la justifica. Esa ausencia de explicación es una decisión narrativa: al tratar lo absurdo como cotidiano, Kafka fuerza al lector a habitar la lógica interna del relato sin distancia crítica."`,
+    stem: 'El efecto de tratar la transformación absurda como cotidiana es:',
+    options_json: {
+      A: 'Hacer que el lector acepte la premisa fantástica y explore su significado sin cuestionarla.',
+      B: 'Indicar que la transformación es un sueño del personaje.',
+      C: 'Demostrar que Kafka creía en la metamorfosis literal.',
+      D: 'Reducir la tensión narrativa para hacer el relato más tranquilo.',
+    },
+    correct_index: 'A',
+    explanation: 'Al no explicar ni justificar, Kafka normaliza lo absurdo; el lector adopta la lógica interna del relato y explora su dimensión metafórica (alienación, burocracia, familia).',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `"Las palabras pueden cumplir funciones muy distintas: describir, ordenar, prometer, insultar, felicitar. El filósofo J.L. Austin llamó a esto 'actos de habla'. Cuando un juez dice 'lo declaro culpable', no describe una realidad: la crea. A estos actos que crean realidad al pronunciarse, Austin los llamó 'performativos'."`,
+    stem: '¿Cuál de las siguientes es un enunciado performativo según Austin?',
+    options_json: {
+      A: '"Los declaro marido y mujer" dicho por un funcionario durante una boda.',
+      B: '"Hoy llueve en Bogotá."',
+      C: '"El cielo es azul."',
+      D: '"El año pasado hubo una sequía."',
+    },
+    correct_index: 'A',
+    explanation: '"Los declaro marido y mujer" no describe un estado previo; crea el estado matrimonial al pronunciarse: es el ejemplo canónico de enunciado performativo.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 2,
+    context: `"Un meme es una unidad de información cultural que se replica y muta. En la era digital, los memes funcionan como textos híbridos: combinan imagen y texto para producir significados que ninguno de los dos componentes generaría por separado. Su eficacia radica en la brevedad y en apelar a experiencias compartidas."`,
+    stem: 'El texto afirma que los memes son "textos híbridos" porque:',
+    options_json: {
+      A: 'Combinan imagen y texto para crear significados que ninguno produciría solo.',
+      B: 'Se publican en múltiples idiomas simultáneamente.',
+      C: 'Mezclan géneros literarios como la poesía y la novela.',
+      D: 'Son producidos por varias personas al mismo tiempo.',
+    },
+    correct_index: 'A',
+    explanation: '"Híbrido" en este contexto = combinación de dos sistemas semióticos (imagen + texto) que produce un tercer significado emergente.',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `"Toda traducción es también una interpretación. No existe la traducción literal perfecta porque las palabras no tienen equivalentes exactos entre lenguas: cargan connotaciones culturales, ritmos y ambigüedades únicas. Traducir es elegir, y elegir es perder algo."`,
+    stem: 'La tesis "toda traducción es una interpretación" implica que:',
+    options_json: {
+      A: 'El traductor siempre toma decisiones que transforman el texto original.',
+      B: 'Las traducciones son siempre inferiores al original.',
+      C: 'Solo los traductores nativos pueden hacer buenas traducciones.',
+      D: 'Los diccionarios bilingües resuelven todos los problemas de traducción.',
+    },
+    correct_index: 'A',
+    explanation: 'Si traducir implica "elegir", el traductor ejerce una función interpretativa activa: no hay trasvase neutro entre lenguas.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `"El haiku japonés condensa en tres versos (5-7-5 sílabas) una imagen sensorial y un instante de iluminación. Matsuo Bashō escribió: 'Un viejo estanque. / Salta una rana. / Ruido del agua.' La ausencia de metáforas explícitas no significa simplicidad: la imagen crea el significado sin nombrarlo."`,
+    stem: 'La idea de que "la imagen crea el significado sin nombrarlo" describe la técnica de:',
+    options_json: {
+      A: 'La sugerencia o evocación: el poema muestra sin decir, invitando al lector a completar el sentido.',
+      B: 'La definición precisa de conceptos abstractos.',
+      C: 'El uso de metáforas explícitas para aclarar el significado.',
+      D: 'La descripción científica de fenómenos naturales.',
+    },
+    correct_index: 'A',
+    explanation: 'El haiku no nombra la emoción o el significado; lo evoca a través de la imagen concreta. El lector "siente" el significado, no lo deduce de explicaciones.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `"Cuando Platón pone en boca de Sócrates la frase 'solo sé que no sé nada', no está expresando ignorancia total: está describiendo la consciencia de los propios límites como punto de partida del conocimiento. La ignorancia socrática no es pasividad; es la condición necesaria para seguir buscando."`,
+    stem: 'La frase socrática se reinterpreta en el texto como:',
+    options_json: {
+      A: 'Un reconocimiento activo de los propios límites que impulsa la búsqueda del conocimiento.',
+      B: 'Una confesión de incapacidad intelectual definitiva.',
+      C: 'Una estrategia retórica para evitar responder preguntas.',
+      D: 'Una crítica al sistema educativo de la Atenas clásica.',
+    },
+    correct_index: 'A',
+    explanation: '"No es pasividad; es la condición necesaria para seguir buscando" reencuadra el dicho socrático como motor epistémico, no como derrota intelectual.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 2,
+    context: `"La propaganda no siempre miente; a veces selecciona cuidadosamente verdades parciales para crear una imagen distorsionada. Un gobierno puede publicar cifras reales de crecimiento económico sin mencionar que ese crecimiento beneficia solo al 10% de la población. La verdad a medias puede ser más peligrosa que la mentira porque es más difícil de refutar."`,
+    stem: '¿Por qué el texto sostiene que la "verdad a medias" puede ser más peligrosa que la mentira?',
+    options_json: {
+      A: 'Porque contiene datos reales que dan apariencia de objetividad y son difíciles de refutar.',
+      B: 'Porque los ciudadanos siempre creen más las mentiras que las verdades.',
+      C: 'Porque la propaganda siempre usa matemáticas complicadas.',
+      D: 'Porque los medios nunca verifican los datos del gobierno.',
+    },
+    correct_index: 'A',
+    explanation: 'Una mentira puede detectarse; una verdad parcial tiene datos reales que la blindan ante la crítica, haciendo la distorsión más difícil de señalar.',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `"La coherencia de un texto depende de dos mecanismos: la cohesión (los recursos gramaticales que unen las frases: pronombres, conectores, sinónimos) y la coherencia global (que todas las partes contribuyan a un mismo tema central). Un texto puede ser gramaticalmente cohesivo pero temáticamente incoherente."`,
+    stem: 'Un ejemplo de texto cohesivo pero incoherente sería:',
+    options_json: {
+      A: 'Un párrafo donde cada oración usa correctamente pronombres y conectores pero cada frase habla de un tema distinto.',
+      B: 'Un texto sin signos de puntuación ni conectores.',
+      C: 'Un párrafo con muchas metáforas pero sin errores ortográficos.',
+      D: 'Un texto con ideas claras pero con errores de concordancia.',
+    },
+    correct_index: 'A',
+    explanation: 'Si los conectores funcionan (cohesión) pero cada frase cambia de tema (incoherencia global), se cumple exactamente la distinción del texto.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `"La novela negra nació como crítica social encubierta. Raymond Chandler no escribía sobre crímenes: escribía sobre la corrupción del sueño americano. El detective Marlowe no resuelve casos; revela que la sociedad que lo rodea es el verdadero criminal."`,
+    stem: 'Según el texto, el verdadero tema de la novela negra de Chandler es:',
+    options_json: {
+      A: 'La corrupción moral y social del sistema, no el crimen individual.',
+      B: 'La psicología del asesino en serie.',
+      C: 'Las técnicas policiales de investigación criminal.',
+      D: 'La vida personal del detective Marlowe.',
+    },
+    correct_index: 'A',
+    explanation: '"No escribía sobre crímenes: escribía sobre la corrupción del sueño americano" es la tesis del texto; el crimen es el vehículo, la crítica social es el destino.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `"No todos los argumentos de autoridad son falacias. Pero sí lo son cuando: (1) la autoridad no es real; (2) la autoridad no es relevante al tema; o (3) existe consenso científico en sentido contrario y se cita una sola voz disidente como prueba."`,
+    stem: 'Un ejemplo de falacia de autoridad según el texto sería:',
+    options_json: {
+      A: 'Citar a un solo climatólogo escéptico para negar el consenso sobre el cambio climático.',
+      B: 'Citar a un virólogo reconocido para defender una vacuna aprobada.',
+      C: 'Recurrir al IPCC para hablar del calentamiento global.',
+      D: 'Mencionar a un Nobel de física para hablar de mecánica cuántica.',
+    },
+    correct_index: 'A',
+    explanation: 'Caso 3 del texto: citar una voz disidente cuando existe consenso científico contrario es falacia de autoridad porque presentar la excepción como evidencia distorsiona el estado del conocimiento.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 2,
+    context: `"La iconografía religiosa medieval no era decoración: era el libro de los analfabetos. Las imágenes de vírgenes, santos y crucifijos en las catedrales cumplían la función de transmitir la doctrina cristiana a una población que no sabía leer. La imagen era el texto."`,
+    stem: 'La expresión "la imagen era el texto" en el contexto medieval significa:',
+    options_json: {
+      A: 'Las imágenes cumplían la función comunicativa y doctrinal que hoy cumplen los textos escritos.',
+      B: 'Los artistas medievales escribían textos dentro de las pinturas.',
+      C: 'Las imágenes eran más importantes que los evangelios escritos.',
+      D: 'Los analfabetos no podían comprender ningún tipo de mensaje.',
+    },
+    correct_index: 'A',
+    explanation: 'La imagen funcionaba como vehículo de información y doctrina para quienes no podían acceder al texto escrito; cumplía su función comunicativa.',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `"La ironía es decir A para significar no-A (o incluso lo contrario de A). Su funcionamiento depende de que el receptor reconozca la distancia entre lo dicho y lo querido. Si la ironía no se detecta, se entiende literalmente y el efecto se pierde o se invierte."`,
+    stem: 'Cuando alguien dice "¡Qué maravillosa idea!" ante una propuesta absurda, el efecto irónico depende de:',
+    options_json: {
+      A: 'Que el interlocutor perciba la distancia entre el elogio explícito y el contexto que lo contradice.',
+      B: 'Que las palabras usadas sean formalmente correctas.',
+      C: 'Que el hablante use un tono de voz muy grave.',
+      D: 'Que el interlocutor no conozca la propuesta absurda.',
+    },
+    correct_index: 'A',
+    explanation: 'La ironía requiere que el receptor conozca el contexto (la propuesta es absurda) para detectar que "maravillosa" significa lo contrario.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 2,
+    context: `"El monólogo interior es la técnica narrativa que busca reproducir el flujo de la conciencia del personaje sin filtro lógico ni cronológico. James Joyce en 'Ulises' y Virginia Woolf en 'Las olas' la llevaron al extremo: frases inconclusas, asociaciones libres, sin narrador que organice el caos mental."`,
+    stem: 'El "flujo de conciencia" como técnica narrativa rompe con:',
+    options_json: {
+      A: 'La narración ordenada y lógica del narrador omnisciente tradicional.',
+      B: 'El uso del diálogo entre personajes.',
+      C: 'La presencia de más de un personaje en la novela.',
+      D: 'El uso del lenguaje coloquial en la literatura.',
+    },
+    correct_index: 'A',
+    explanation: '"Sin narrador que organice el caos mental" es la ruptura central: abandona el orden lógico y cronológico del narrador tradicional.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 2,
+    context: `"La falacia del hombre de paja consiste en distorsionar el argumento del adversario para atacar esa versión distorsionada, más fácil de refutar. En un debate, si alguien defiende la educación sexual en escuelas y su oponente responde 'no voy a permitir que le enseñen pornografía a los niños', ha construido un hombre de paja."`,
+    stem: 'La falacia del hombre de paja es efectiva retóricamente porque:',
+    options_json: {
+      A: 'Es más fácil ganar un debate atacando una posición extrema inventada que la posición real del adversario.',
+      B: 'Hace que el adversario parezca más inteligente de lo que es.',
+      C: 'Permite introducir nuevas evidencias en el debate.',
+      D: 'Mejora la calidad del argumento de quien la usa.',
+    },
+    correct_index: 'A',
+    explanation: 'Al reemplazar el argumento real por uno extremo (educación sexual → pornografía), se facilita el ataque, pero no se refuta la posición original.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+
+  // ══════════════════════════════════════════════════════
+  // BLOQUE F — TEXTOS DIFÍCILES (difficulty 3, 51-100)
+  // ══════════════════════════════════════════════════════
+
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 3,
+    context: `"El estructuralismo de Saussure propone que los signos lingüísticos son arbitrarios: la relación entre el significante (imagen acústica) y el significado (concepto) no tiene fundamento natural. 'Árbol' no se parece al árbol. Esta arbitrariedad implica que el lenguaje no refleja el mundo; lo articula. Cambiar el lenguaje es, en cierto sentido, cambiar la realidad que percibimos."`,
+    stem: 'La afirmación "cambiar el lenguaje es cambiar la realidad que percibimos" se basa en:',
+    options_json: {
+      A: 'La idea de que el lenguaje no refleja sino que articula y construye la percepción del mundo.',
+      B: 'El hecho de que las palabras tienen poderes mágicos.',
+      C: 'La demostración científica de que el vocabulario afecta la visión del color.',
+      D: 'La propuesta de inventar nuevas palabras para nuevas tecnologías.',
+    },
+    correct_index: 'A',
+    explanation: 'Si el lenguaje articula (no refleja) el mundo, entonces transformar las categorías lingüísticas modifica cómo el hablante percibe y organiza la realidad.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 3,
+    context: `"El estructuralismo de Saussure propone que los signos lingüísticos son arbitrarios: la relación entre el significante (imagen acústica) y el significado (concepto) no tiene fundamento natural. 'Árbol' no se parece al árbol. Esta arbitrariedad implica que el lenguaje no refleja el mundo; lo articula. Cambiar el lenguaje es, en cierto sentido, cambiar la realidad que percibimos."`,
+    stem: 'Una consecuencia política de la tesis saussureana sería que:',
+    options_json: {
+      A: 'Quien controla el lenguaje (denominaciones, categorías) ejerce poder sobre cómo otros perciben la realidad.',
+      B: 'Los idiomas con más palabras describen mejor la realidad.',
+      C: 'El español es superior al inglés porque tiene más signos lingüísticos.',
+      D: 'La política debe eliminar el lenguaje técnico para ser más democrática.',
+    },
+    correct_index: 'A',
+    explanation: 'Si el lenguaje articula la realidad y es arbitrario (convencional), quien fija las convenciones lingüísticas de una sociedad moldea su percepción del mundo.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 3,
+    context: `"El estructuralismo de Saussure propone que los signos lingüísticos son arbitrarios: la relación entre el significante (imagen acústica) y el significado (concepto) no tiene fundamento natural. 'Árbol' no se parece al árbol. Esta arbitrariedad implica que el lenguaje no refleja el mundo; lo articula. Cambiar el lenguaje es, en cierto sentido, cambiar la realidad que percibimos."`,
+    stem: 'La onomatopeya ("croac" para la rana, "miau" para el gato) representa una excepción parcial al principio saussureano porque:',
+    options_json: {
+      A: 'Imita el sonido del referente, estableciendo una relación motivada (no completamente arbitraria) entre significante y significado.',
+      B: 'Demuestra que todos los signos tienen fundamento natural.',
+      C: 'Prueba que Saussure estaba equivocado en toda su teoría.',
+      D: 'Muestra que el lenguaje solo puede representar sonidos, no ideas.',
+    },
+    correct_index: 'A',
+    explanation: 'La onomatopeya tiene cierta motivación icónica (el significante imita el sonido del referente), lo que relativiza —sin refutar— la arbitrariedad total del signo.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 3,
+    context: `Texto A: "El arte debe comprometerse con su tiempo. Un poema que no habla del hambre, de la guerra o de la injusticia es un lujo inaceptable." — Neruda (paráfrasis)
+Texto B: "El arte que se convierte en propaganda pierde su alma. La belleza no necesita justificación política." — Nabokov (paráfrasis)`,
+    stem: 'La tensión entre los dos textos representa la discusión sobre:',
+    options_json: {
+      A: 'El arte comprometido (literatura engagée) vs. el arte por el arte (l\'art pour l\'art).',
+      B: 'El realismo vs. el surrealismo como movimientos literarios.',
+      C: 'La poesía vs. la narrativa como formas literarias.',
+      D: 'La literatura latinoamericana vs. la europea.',
+    },
+    correct_index: 'A',
+    explanation: 'Neruda defiende el arte comprometido socialmente; Nabokov defiende la autonomía estética del arte. Es el debate clásico entre arte social y arte autónomo.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 3,
+    context: `Texto A: "El arte debe comprometerse con su tiempo. Un poema que no habla del hambre, de la guerra o de la injusticia es un lujo inaceptable." — Neruda (paráfrasis)
+Texto B: "El arte que se convierte en propaganda pierde su alma. La belleza no necesita justificación política." — Nabokov (paráfrasis)`,
+    stem: 'Nabokov usaría la obra de Neruda como ejemplo de:',
+    options_json: {
+      A: 'Arte que arriesga perder su valor estético al subordinarse a un mensaje político.',
+      B: 'El mejor ejemplo de belleza pura sin compromiso.',
+      C: 'Una obra que demuestra la superioridad del arte político.',
+      D: 'Un modelo a seguir para todos los escritores contemporáneos.',
+    },
+    correct_index: 'A',
+    explanation: 'Nabokov considera que el arte-propaganda "pierde su alma"; aplicado a Neruda (abiertamente político y comunista), argumentaría que su compromiso político daña su valor estético.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 3,
+    context: `Texto A: "El arte debe comprometerse con su tiempo. Un poema que no habla del hambre, de la guerra o de la injusticia es un lujo inaceptable." — Neruda (paráfrasis)
+Texto B: "El arte que se convierte en propaganda pierde su alma. La belleza no necesita justificación política." — Nabokov (paráfrasis)`,
+    stem: 'Una postura que busque sintetizar ambas perspectivas podría argumentar que:',
+    options_json: {
+      A: 'El arte puede ser estéticamente poderoso y políticamente resonante sin reducirse a propaganda.',
+      B: 'Neruda tiene razón y Nabokov está equivocado.',
+      C: 'El arte nunca debe hablar de política bajo ninguna circunstancia.',
+      D: 'Solo el arte del siglo XX puede ser político; el clásico no.',
+    },
+    correct_index: 'A',
+    explanation: 'Una síntesis no niega ninguna postura: la obra puede alcanzar gran belleza formal Y abordar temas sociales sin convertirse en consigna; Lorca o Toni Morrison serían ejemplos.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 3,
+    context: `"Foucault propone que el poder no solo reprime; también produce. El poder produce saber, produce sujetos, produce verdades. No es solo una fuerza negativa que prohíbe: es una red productiva que atraviesa todas las relaciones sociales. La resistencia, entonces, no puede venir desde afuera del poder, porque no hay un afuera."`,
+    stem: 'La idea de que "no hay un afuera del poder" implica que:',
+    options_json: {
+      A: 'Toda acción, incluida la resistencia, ocurre dentro de las relaciones de poder y es moldeada por ellas.',
+      B: 'Es imposible resistir al poder en cualquier circunstancia.',
+      C: 'Solo los filósofos pueden entender las redes de poder.',
+      D: 'El poder es exclusivamente ejercido por los gobiernos.',
+    },
+    correct_index: 'A',
+    explanation: 'Foucault no dice que la resistencia sea imposible, sino que siempre ocurre dentro de redes de poder: la resistencia misma es una práctica de poder, no una posición exterior a él.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 3,
+    context: `"Foucault propone que el poder no solo reprime; también produce. El poder produce saber, produce sujetos, produce verdades. No es solo una fuerza negativa que prohíbe: es una red productiva que atraviesa todas las relaciones sociales. La resistencia, entonces, no puede venir desde afuera del poder, porque no hay un afuera."`,
+    stem: 'Un ejemplo de "poder que produce saber" según la lógica de Foucault sería:',
+    options_json: {
+      A: 'La psiquiatría del siglo XIX que define qué es la locura y al hacerlo crea la categoría del "loco".',
+      B: 'Un gobierno que censura libros para impedir que los ciudadanos lean.',
+      C: 'Un policía que arresta a un delincuente para proteger a la sociedad.',
+      D: 'Una escuela que prohíbe el uso de celulares en clases.',
+    },
+    correct_index: 'A',
+    explanation: 'La psiquiatría no solo reprime (hospitales); produce un saber (la ciencia psiquiátrica) y un sujeto (el enfermo mental). Es el ejemplo clásico de Foucault en "Historia de la locura".',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 3,
+    context: `"En 'Pedro Páramo', Rulfo construye un texto donde los muertos narran y los vivos callan. La temporalidad no es lineal sino espiral: los eventos se repiten, se contradicen y se completan fragmentariamente. El lector debe reconstruir el relato como si armara un rompecabezas cuyos bordes nunca terminan de encajar."`,
+    stem: 'La técnica narrativa de "Pedro Páramo" que el texto describe implica que:',
+    options_json: {
+      A: 'El lector tiene un papel activo en la construcción del sentido del texto.',
+      B: 'La novela está diseñada para ser incomprensible.',
+      C: 'Rulfo escribió la novela sin plan narrativo previo.',
+      D: 'Los muertos en México tienen la capacidad de hablar literalmente.',
+    },
+    correct_index: 'A',
+    explanation: '"El lector debe reconstruir el relato" señala explícitamente un lector activo, co-constructor del sentido; la narrativa fragmentaria exige participación interpretativa.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 3,
+    context: `"En 'Pedro Páramo', Rulfo construye un texto donde los muertos narran y los vivos callan. La temporalidad no es lineal sino espiral: los eventos se repiten, se contradicen y se completan fragmentariamente. El lector debe reconstruir el relato como si armara un rompecabezas cuyos bordes nunca terminan de encajar."`,
+    stem: 'La imagen del "rompecabezas cuyos bordes nunca terminan de encajar" sugiere que la novela:',
+    options_json: {
+      A: 'Mantiene una ambigüedad irreducible: el sentido nunca se cierra completamente.',
+      B: 'Es un texto con errores que el autor no pudo corregir.',
+      C: 'Requiere ser leída en voz alta para comprenderse.',
+      D: 'Tiene una solución única que el lector experto puede descubrir.',
+    },
+    correct_index: 'A',
+    explanation: 'Los bordes que "nunca terminan de encajar" metaforizan la ambigüedad estructural: la novela mantiene una apertura de sentido que no permite una lectura definitiva única.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 3,
+    context: `"La posverdad designa un entorno comunicativo donde los hechos objetivos influyen menos en la formación de la opinión pública que los llamamientos a la emoción y las creencias personales. El término fue elegido palabra del año por Oxford Dictionaries en 2016. En la era de la posverdad, un rumor que confirma lo que ya creemos es más viral que una investigación periodística que nos contradice."`,
+    stem: 'La posverdad no implica que las personas sean irracionales, sino que:',
+    options_json: {
+      A: 'La cognición humana tiende a privilegiar la confirmación de creencias previas sobre la evidencia contraria.',
+      B: 'Los periodistas inventan noticias para confundir al público.',
+      C: 'Las redes sociales son el único medio donde existe la desinformación.',
+      D: 'La verdad objetiva ha dejado de existir en el siglo XXI.',
+    },
+    correct_index: 'A',
+    explanation: 'La posverdad se basa en el sesgo de confirmación: tendemos a aceptar lo que confirma nuestras creencias y rechazar lo que las contradice, aunque sea evidencia sólida.',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 3,
+    context: `"La posverdad designa un entorno comunicativo donde los hechos objetivos influyen menos en la formación de la opinión pública que los llamamientos a la emoción y las creencias personales. El término fue elegido palabra del año por Oxford Dictionaries en 2016. En la era de la posverdad, un rumor que confirma lo que ya creemos es más viral que una investigación periodística que nos contradice."`,
+    stem: 'Una estrategia para contrarrestar los efectos de la posverdad sería:',
+    options_json: {
+      A: 'Desarrollar pensamiento crítico que permita evaluar la calidad de la evidencia independientemente de si confirma las propias creencias.',
+      B: 'Prohibir las redes sociales y solo permitir medios gubernamentales.',
+      C: 'Aceptar que la verdad es subjetiva y cada quien tiene su propia.',
+      D: 'Consumir solo medios de comunicación afines a la propia ideología.',
+    },
+    correct_index: 'A',
+    explanation: 'El pensamiento crítico permite evaluar la calidad de la evidencia más allá de las preferencias personales, lo que contrarresta el sesgo de confirmación que alimenta la posverdad.',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 3,
+    context: `"La hipótesis de Sapir-Whorf en su versión fuerte sostiene que la lengua que hablas determina lo que puedes pensar: si no tienes la palabra, no tienes el concepto. En su versión débil (más aceptada hoy), la lengua influye y facilita ciertos pensamientos sin determinarlo completamente."`,
+    stem: 'La diferencia entre la versión fuerte y débil de Sapir-Whorf es:',
+    options_json: {
+      A: 'La versión fuerte sostiene determinismo lingüístico; la débil, solo influencia.',
+      B: 'La versión fuerte habla de idiomas modernos; la débil, de idiomas antiguos.',
+      C: 'La versión débil es la propuesta original; la fuerte es una interpretación posterior.',
+      D: 'Ambas versiones son igualmente aceptadas por la lingüística contemporánea.',
+    },
+    correct_index: 'A',
+    explanation: '"Determina" (fuerte) vs. "influye sin determinar" (débil) es la distinción clave; el texto lo explicita.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 3,
+    context: `"La hipótesis de Sapir-Whorf en su versión fuerte sostiene que la lengua que hablas determina lo que puedes pensar: si no tienes la palabra, no tienes el concepto. En su versión débil (más aceptada hoy), la lengua influye y facilita ciertos pensamientos sin determinarlo completamente."`,
+    stem: 'Si la versión fuerte fuera correcta, sería imposible:',
+    options_json: {
+      A: 'Pensar o conceptualizar algo para lo cual no existe una palabra en tu lengua materna.',
+      B: 'Aprender un segundo idioma después de la infancia.',
+      C: 'Traducir textos entre idiomas sin perder el significado.',
+      D: 'Crear nuevas palabras para nuevos conceptos tecnológicos.',
+    },
+    correct_index: 'A',
+    explanation: 'Si la lengua determina el pensamiento, lo impensable sería exactamente lo que no tiene nombre en el idioma nativo del hablante.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 3,
+    context: `"El Bildungsroman (novela de formación) narra el desarrollo moral, psicológico y social de un protagonista desde la juventud hasta la madurez. 'David Copperfield', 'Jane Eyre' y 'El guardián entre el centeno' son ejemplos canónicos. El género implica una visión del sujeto como entidad en formación permanente, moldeable por la experiencia."`,
+    stem: 'La visión del sujeto que subyace al Bildungsroman es:',
+    options_json: {
+      A: 'El individuo no está determinado de antemano: la experiencia y el entorno lo forman.',
+      B: 'La identidad del personaje está fijada desde el nacimiento.',
+      C: 'Solo la educación formal determina el carácter de una persona.',
+      D: 'Los personajes de estas novelas son moralmente perfectos al final.',
+    },
+    correct_index: 'A',
+    explanation: '"Moldeable por la experiencia" describe una visión constructivista del sujeto: la identidad se forma a través del proceso vital, no es innata ni fija.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 3,
+    context: `"El Bildungsroman (novela de formación) narra el desarrollo moral, psicológico y social de un protagonista desde la juventud hasta la madurez. 'David Copperfield', 'Jane Eyre' y 'El guardián entre el centeno' son ejemplos canónicos. El género implica una visión del sujeto como entidad en formación permanente, moldeable por la experiencia."`,
+    stem: 'Una novela donde el protagonista empieza como adolescente rebelde y termina aceptando los valores de la sociedad que antes rechazaba podría criticarse desde el Bildungsroman porque:',
+    options_json: {
+      A: 'Convierte la formación en conformismo: el desarrollo culmina en la integración acrítica al sistema.',
+      B: 'El protagonista no aprendió nada durante la novela.',
+      C: 'Las novelas de formación no pueden tener personajes rebeldes.',
+      D: 'La madurez siempre implica rechazar los valores sociales.',
+    },
+    correct_index: 'A',
+    explanation: 'La crítica clásica al Bildungsroman señala que "formarse" puede equivaler a "normalizarse": la madurez como aceptación del orden existente, no como desarrollo genuinamente crítico.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 3,
+    context: `"Roland Barthes describe el mito como un sistema semiótico de segundo grado: toma un signo ya formado (una imagen con su significado) y lo convierte en significante de un nuevo mensaje ideológico. La portada de una revista que muestra a un soldado africano saludando la bandera francesa no dice solo 'este hombre saluda': dice 'Francia es un imperio multicultural y grandioso'. El mito naturaliza la ideología."`,
+    stem: 'Cuando Barthes dice que el mito "naturaliza la ideología", significa que:',
+    options_json: {
+      A: 'Hace que los mensajes ideológicos parezcan evidentes, naturales e incuestionables.',
+      B: 'Los mitos se basan en fenómenos de la naturaleza.',
+      C: 'La ideología solo existe en culturas que tienen naturaleza salvaje.',
+      D: 'El mito elimina toda posibilidad de análisis crítico.',
+    },
+    correct_index: 'A',
+    explanation: 'Naturalizar = hacer parecer natural lo que es cultural y construido. El mito borra las huellas de su construcción ideológica, presentándose como "la realidad misma".',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 3,
+    context: `"Roland Barthes describe el mito como un sistema semiótico de segundo grado: toma un signo ya formado (una imagen con su significado) y lo convierte en significante de un nuevo mensaje ideológico. La portada de una revista que muestra a un soldado africano saludando la bandera francesa no dice solo 'este hombre saluda': dice 'Francia es un imperio multicultural y grandioso'. El mito naturaliza la ideología."`,
+    stem: 'El análisis de Barthes de la portada demuestra que la imagen tiene:',
+    options_json: {
+      A: 'Un nivel denotativo (lo que muestra literalmente) y uno connotativo-ideológico (lo que significa culturalmente).',
+      B: 'Solo un significado objetivo y universal.',
+      C: 'Un significado distinto para cada lector sin ningún patrón.',
+      D: 'Más importancia estética que política.',
+    },
+    correct_index: 'A',
+    explanation: 'Denotación: soldado saluda. Connotación ideológica: grandeza imperial multicultural. Barthes distingue estos dos niveles en toda imagen cultural.',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 3,
+    context: `"El concepto de 'frame' (marco o encuadre) de George Lakoff propone que cada concepto viene cargado de una estructura mental que activa ciertos valores y desactiva otros. Llamar 'alivio fiscal' a una reducción de impuestos activa el marco de la carga insoportable; 'inversión' activa el marco del beneficio futuro. Los políticos que aceptan el marco del adversario ya han perdido el debate."`,
+    stem: 'La estrategia que Lakoff recomienda implícitamente es:',
+    options_json: {
+      A: 'No aceptar el marco del adversario; reformular el debate en términos propios.',
+      B: 'Estudiar más lógica formal para ganar debates políticos.',
+      C: 'Usar siempre lenguaje técnico y estadístico en política.',
+      D: 'Evitar el uso de metáforas en el discurso político.',
+    },
+    correct_index: 'A',
+    explanation: '"Los políticos que aceptan el marco del adversario ya han perdido" implica que la resistencia está en NO aceptar ese marco y proponer uno alternativo.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 3,
+    context: `"La paradoja del mentiroso ('Esta oración es falsa') no puede resolverse dentro del sistema lógico donde se plantea: si es verdadera, es falsa; si es falsa, es verdadera. Gödel demostró que en cualquier sistema formal suficientemente potente existen proposiciones verdaderas que no pueden probarse dentro de ese sistema. La incompletud es inherente a la lógica."`,
+    stem: 'El teorema de incompletud de Gödel implica que:',
+    options_json: {
+      A: 'Todo sistema lógico suficientemente complejo tiene límites internos que no puede superar por sí mismo.',
+      B: 'Las matemáticas son falsas y no pueden usarse en ciencias.',
+      C: 'La paradoja del mentiroso demuestra que la lógica es inútil.',
+      D: 'Solo los sistemas simples pueden ser completos y consistentes.',
+    },
+    correct_index: 'A',
+    explanation: 'Gödel mostró que la incompletud es una característica estructural de los sistemas formales potentes: siempre habrá verdades que el sistema no puede demostrar internamente.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 3,
+    context: `"La escritura automática del surrealismo busca suprimir el control racional del escritor para que el inconsciente fluya directamente al papel. Breton y Éluard consideraban que la razón, la moral y la estética convencional eran cadenas que impedían la expresión del deseo y de la verdad más profunda. El surrealismo fue una revolución estética y política simultáneamente."`,
+    stem: 'La escritura automática surrealista representa una ruptura con:',
+    options_json: {
+      A: 'La concepción ilustrada del arte como producto del control racional y la intención consciente del artista.',
+      B: 'El uso del lenguaje verbal en la literatura.',
+      C: 'La tradición oral de los pueblos africanos.',
+      D: 'El romanticismo como exaltación de las emociones.',
+    },
+    correct_index: 'A',
+    explanation: 'La Ilustración y la tradición literaria burguesa asociaban el arte a la razón y el control; el surrealismo invierte esto al privilegiar el inconsciente sobre la conciencia.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 3,
+    context: `"La escritura automática del surrealismo busca suprimir el control racional del escritor para que el inconsciente fluya directamente al papel. Breton y Éluard consideraban que la razón, la moral y la estética convencional eran cadenas que impedían la expresión del deseo y de la verdad más profunda. El surrealismo fue una revolución estética y política simultáneamente."`,
+    stem: 'La dimensión "política" del surrealismo, según el texto, radica en que:',
+    options_json: {
+      A: 'Cuestionar la razón y la moral convencionales es también cuestionar el orden social que las sostiene.',
+      B: 'Los surrealistas se presentaron como candidatos a cargos políticos.',
+      C: 'El surrealismo apoyaba el fascismo europeo de entreguerras.',
+      D: 'Breton escribió manifiestos económicos además de poéticos.',
+    },
+    correct_index: 'A',
+    explanation: 'Si la razón y la moral convencionales son "cadenas", y esas estructuras sostienen el orden burgués, entonces liberarse de ellas estéticamente tiene consecuencias políticas.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 3,
+    context: `"Derrida propone que todo texto contiene sus propias contradicciones internas: los conceptos que un autor usa para argumentar una posición también la desestabilizan. La deconstrucción no destruye el texto; lo lee contra sí mismo para revelar los presupuestos que lo hacen posible y las jerarquías que establece sin admitirlo."`,
+    stem: 'La "deconstrucción" de Derrida se distingue de la crítica literaria tradicional porque:',
+    options_json: {
+      A: 'No busca el "verdadero significado" del texto sino sus tensiones y contradicciones internas.',
+      B: 'Solo se aplica a textos filosóficos, no literarios.',
+      C: 'Destruye el texto para mostrar que no tiene significado.',
+      D: 'Utiliza métodos cuantitativos para analizar la frecuencia de palabras.',
+    },
+    correct_index: 'A',
+    explanation: 'La crítica tradicional busca el significado correcto; la deconstrucción lee las tensiones y presupuestos del texto que lo hacen inestable desde adentro.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 3,
+    context: `"El concepto de 'agenda setting' (McCombs y Shaw, 1972) propone que los medios no nos dicen qué pensar, pero sí sobre qué pensar. Al decidir qué noticias cubrir, con qué frecuencia y con qué énfasis, los medios establecen los temas que el público considera relevantes. Los problemas que los medios ignoran tienden a ser invisibles para la opinión pública."`,
+    stem: 'La distinción entre "qué pensar" y "sobre qué pensar" es crucial porque:',
+    options_json: {
+      A: 'Los medios influyen en los temas de la agenda pública sin necesariamente dictar las conclusiones que el público extrae de ellos.',
+      B: 'Los medios no tienen ninguna influencia sobre la opinión pública.',
+      C: 'El público siempre piensa lo mismo que los medios sobre cada tema.',
+      D: 'Solo los temas políticos son afectados por el agenda setting.',
+    },
+    correct_index: 'A',
+    explanation: 'Agenda setting = poder sobre la relevancia (qué temas existen en la esfera pública), no sobre las conclusiones específicas. Es una influencia real pero más sutil que la propaganda directa.',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 3,
+    context: `"La narrativa del 'self-made man' (hombre que se hizo a sí mismo) es uno de los mitos fundacionales del liberalismo económico. Celebra al individuo que, partiendo de la nada, llega al éxito por méritos propios. El problema de este relato, como señala Bourdieu, es que invisibiliza el capital cultural, social y económico heredado: nadie parte realmente desde cero."`,
+    stem: 'La crítica de Bourdieu a la narrativa del "self-made man" señala que:',
+    options_json: {
+      A: 'El éxito individual siempre parte de capitales heredados que el mito niega, haciendo invisible la desigualdad de origen.',
+      B: 'El esfuerzo individual nunca determina el éxito de una persona.',
+      C: 'El liberalismo económico es la mejor teoría para explicar el éxito.',
+      D: 'Bourdieu defiende que el Estado debe garantizar el éxito de todos.',
+    },
+    correct_index: 'A',
+    explanation: 'Bourdieu muestra que el capital cultural (educación familiar), social (redes) y económico (herencia) son condiciones de partida que el mito del "self-made man" borra, creando una ilusión de meritocracia pura.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 3,
+    context: `"En literatura, el narrador no confiable es aquel cuya versión de los hechos el lector tiene razones para cuestionar. El ejemplo más célebre es Stevens en 'Lo que queda del día' de Ishiguro: su narración impecablemente formal oculta, sin saberlo él mismo, una vida de autoengaño y colaboración con el mal. El lector lee entre líneas lo que el narrador no puede o no quiere ver."`,
+    stem: 'El narrador no confiable crea un efecto literario donde:',
+    options_json: {
+      A: 'El lector sabe más que el narrador sobre los hechos narrados, generando una ironía dramática.',
+      B: 'El narrador miente deliberadamente para manipular al lector.',
+      C: 'El autor no sabe qué historia quiere contar.',
+      D: 'Los hechos narrados son objetivamente falsos.',
+    },
+    correct_index: 'A',
+    explanation: 'La ironía dramática ocurre cuando el lector tiene información o comprensión que el narrador no posee; en Stevens, vemos su autoengaño que él mismo no puede ver.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 3,
+    context: `"En literatura, el narrador no confiable es aquel cuya versión de los hechos el lector tiene razones para cuestionar. El ejemplo más célebre es Stevens en 'Lo que queda del día' de Ishiguro: su narración impecablemente formal oculta, sin saberlo él mismo, una vida de autoengaño y colaboración con el mal. El lector lee entre líneas lo que el narrador no puede o no quiere ver."`,
+    stem: 'Que Stevens no sepa que está ocultando información sugiere que el autoengaño en la novela es:',
+    options_json: {
+      A: 'Inconsciente: el narrador no es consciente de la distancia entre su autopercepción y la realidad.',
+      B: 'Una estrategia deliberada para confundir al lector.',
+      C: 'Un defecto técnico de la novela que Ishiguro no logró resolver.',
+      D: 'Una señal de que Stevens es malvado y consciente de serlo.',
+    },
+    correct_index: 'A',
+    explanation: '"Sin saberlo él mismo" es la clave: no es mendacidad consciente sino ceguera psicológica, lo que hace el personaje más trágico y el dispositivo narrativo más sofisticado.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 3,
+    context: `"La teoría del framing (Goffman, 1974) propone que las personas interpretan la realidad a través de marcos mentales preexistentes. Los medios seleccionan ciertos aspectos de un evento y los hacen más salientes, promoviendo una definición particular del problema, una interpretación causal y una evaluación moral. El mismo hecho puede encuadrarse como 'crisis migratoria' o 'oportunidad demográfica' con consecuencias políticas radicalmente diferentes."`,
+    stem: 'La diferencia entre llamar a la inmigración "crisis" vs. "oportunidad demográfica" ilustra que:',
+    options_json: {
+      A: 'El encuadre activa marcos valorativos distintos que orientan actitudes y políticas.',
+      B: 'Los hechos sobre inmigración son ambiguos e imposibles de conocer.',
+      C: 'Solo los medios de derecha usan el encuadre de "crisis".',
+      D: 'El framing es una teoría que solo aplica a países con alta inmigración.',
+    },
+    correct_index: 'A',
+    explanation: '"Crisis" activa marcos de amenaza, urgencia y control; "oportunidad" activa marcos de beneficio y planificación. Mismos hechos, marcos distintos, conclusiones políticas distintas.',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 3,
+    context: `"Nietzsche proclamó la 'muerte de Dios' no como afirmación atea, sino como diagnóstico cultural: la modernidad ha destruido el fundamento metafísico que daba sentido y valor al mundo occidental. Sin Dios, no hay valores absolutos. El nihilismo es la consecuencia lógica, pero Nietzsche lo ve como punto de partida para crear nuevos valores: la transvaloración."`,
+    stem: 'La "transvaloración" de Nietzsche es una respuesta al nihilismo porque:',
+    options_json: {
+      A: 'Propone crear nuevos valores desde la voluntad humana en lugar de rendirse al vacío de sentido.',
+      B: 'Defiende volver a los valores religiosos del pasado.',
+      C: 'Niega que la muerte de Dios tenga consecuencias para la ética.',
+      D: 'Propone eliminar todos los valores existentes definitivamente.',
+    },
+    correct_index: 'A',
+    explanation: 'La transvaloración no restaura valores divinos ni acepta el vacío: propone que el ser humano cree valores propios desde su voluntad; es una respuesta constructiva al nihilismo.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 3,
+    context: `"El realismo mágico latinoamericano no mezcla lo real y lo fantástico de forma arbitraria: lo mágico surge de la cosmovisión de comunidades que no distinguen ontológicamente entre el mundo visible y el invisible. En Macondo, los muertos conviven con los vivos no porque García Márquez sea surrealista, sino porque esa es la lógica interna de la cultura que retrata."`,
+    stem: 'La distinción que el texto establece entre realismo mágico y surrealismo es:',
+    options_json: {
+      A: 'El realismo mágico surge de cosmovisiones culturales reales; el surrealismo, de la exploración del inconsciente individual europeo.',
+      B: 'El surrealismo es latinoamericano y el realismo mágico es europeo.',
+      C: 'Ambos movimientos son idénticos con distintos nombres.',
+      D: 'El realismo mágico rechaza lo fantástico; el surrealismo lo celebra.',
+    },
+    correct_index: 'A',
+    explanation: 'El realismo mágico tiene raíces en visiones de mundo colectivas (indígenas, afrolatinas) donde lo sobrenatural es cotidiano; el surrealismo es un proyecto estético europeo de exploración del inconsciente.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 3,
+    context: `Texto A: "Los países con mayor desigualdad tienen índices más altos de violencia. Por lo tanto, reducir la desigualdad reducirá la violencia."
+Texto B: "Los países con mayor desigualdad tienen índices más altos de violencia. Sin embargo, la causalidad podría ser inversa: la violencia puede destruir el capital social y productivo, generando más desigualdad."`,
+    stem: 'El Texto B introduce una limitación al argumento del Texto A que se conoce como:',
+    options_json: {
+      A: 'El problema de la causalidad inversa: la variable efecto podría ser también causa.',
+      B: 'La falacia de generalización apresurada.',
+      C: 'El sesgo de confirmación del investigador.',
+      D: 'La falacia ad hominem contra los autores del Texto A.',
+    },
+    correct_index: 'A',
+    explanation: 'Cuando A→B y B→A son ambos posibles, no podemos asumir la dirección causal de la correlación; el Texto B señala exactamente este problema de causalidad inversa.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 3,
+    context: `Texto A: "Los países con mayor desigualdad tienen índices más altos de violencia. Por lo tanto, reducir la desigualdad reducirá la violencia."
+Texto B: "Los países con mayor desigualdad tienen índices más altos de violencia. Sin embargo, la causalidad podría ser inversa: la violencia puede destruir el capital social y productivo, generando más desigualdad."`,
+    stem: 'Para establecer la dirección causal entre desigualdad y violencia se necesitaría:',
+    options_json: {
+      A: 'Un estudio longitudinal que mida si los cambios en desigualdad preceden a los cambios en violencia o viceversa.',
+      B: 'Encuestar a los ciudadanos sobre su percepción de la violencia.',
+      C: 'Comparar países ricos con países pobres en un año específico.',
+      D: 'Revisar los datos históricos del país con más violencia del mundo.',
+    },
+    correct_index: 'A',
+    explanation: 'La causalidad requiere temporalidad (la causa precede al efecto); un estudio longitudinal permite ver qué variable cambia primero, estableciendo la dirección causal.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 3,
+    context: `"Jorge Luis Borges dijo que el libro es el mejor artefacto que el ser humano ha creado porque, a diferencia de cualquier otro, no es pasivo: exige al lector que lo complete. 'Un libro es un objeto inerte hasta que un lector lo activa.' Esta idea anticipa la teoría de la recepción de Jauss y Iser: el texto no existe plenamente hasta que es leído."`,
+    stem: 'La afirmación de que el texto "no existe plenamente hasta que es leído" implica que:',
+    options_json: {
+      A: 'El significado es una co-producción entre el texto y el lector, no algo fijo en el texto mismo.',
+      B: 'Los textos no leídos están incompletos gramaticalmente.',
+      C: 'Solo los lectores expertos dan sentido a los textos.',
+      D: 'El autor pierde todos los derechos sobre el texto una vez publicado.',
+    },
+    correct_index: 'A',
+    explanation: 'La estética de la recepción (Jauss, Iser) sostiene que el significado emerge en el acto de lectura; el texto tiene "lugares de indeterminación" que el lector llena.',
+    icfes_competency: 'Literatura',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Medios de comunicación y otros sistemas simbólicos', difficulty: 3,
+    context: `"Los videojuegos son hoy el medio de entretenimiento más consumido en el mundo, superando al cine y la música. Como sistema semiótico, combinan imagen, sonido, texto, interactividad y narrativa. La diferencia fundamental con otros medios es la agencia del jugador: el receptor no es pasivo sino actor que toma decisiones que afectan el desarrollo del relato."`,
+    stem: 'La "agencia del jugador" como característica diferencial del videojuego implica que:',
+    options_json: {
+      A: 'El videojuego transforma al receptor en co-autor del relato mediante sus decisiones.',
+      B: 'Los videojuegos son más peligrosos que otros medios por la interactividad.',
+      C: 'El cine y la música son medios inferiores al videojuego.',
+      D: 'Solo los videojuegos con historia son verdaderos textos semióticos.',
+    },
+    correct_index: 'A',
+    explanation: 'La agencia = capacidad de acción del jugador que moldea el relato; esto convierte al receptor en co-autor, rasgo ausente en medios pasivos como el cine o la música.',
+    icfes_competency: 'Medios de comunicación y otros sistemas simbólicos',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Comprensión e interpretación textual', difficulty: 3,
+    context: `"El principio de caridad interpretativa (Davidson) propone que, al interpretar el discurso de otro, debemos asumir la versión más racional y coherente posible de su argumento antes de criticarlo. No atacar versiones débiles o distorsionadas, sino la formulación más fuerte del argumento adversario. Solo así la crítica tiene valor intelectual real."`,
+    stem: 'El principio de caridad interpretativa se opone directamente a:',
+    options_json: {
+      A: 'La falacia del hombre de paja, que ataca una versión distorsionada y débil del argumento.',
+      B: 'El uso de evidencia empírica en los debates filosóficos.',
+      C: 'El argumento de autoridad como recurso retórico.',
+      D: 'La lógica formal como herramienta de análisis.',
+    },
+    correct_index: 'A',
+    explanation: 'El hombre de paja ataca la versión más débil/distorsionada; la caridad interpretativa exige atacar la versión más fuerte. Son actitudes opuestas ante el argumento ajeno.',
+    icfes_competency: 'Comprensión e interpretación textual',
+  },
+  {
+    subject: 'lectura_critica', topic: 'Literatura', difficulty: 3,
+    context: `"'El proceso' de Kafka narra la historia de Josef K., quien es arrestado sin saber el cargo, juzgado en tribunales que no lo reciben y condenado sin haber comprendido nunca su delito. La novela no es una distopía futurista: es la descripción del presente kafkiano, donde la burocracia genera un poder tan opaco que ningún individuo puede comprender ni resistir."`,
+    stem: 'El término "kafkiano" en el lenguaje cotidiano ha llegado a significar:',
+    options_json: {
+      A: 'Una situación absurda y laberíntica donde el individuo enfrenta sistemas de poder incomprensibles.',
+      B: 'Una obra literaria muy larga y difícil de leer.',
+      C: 'Un estilo narrativo que combina humor y tragedia.',
+      D: 'Un tipo de burocracia eficiente y ordenada.',
+    },
+    correct_index: 'A',
+    explanation: 'La obra de Kafka generó un adjetivo cultural: "kafkiano" designa la experiencia de enfrentarse a sistemas (burocracias, instituciones) que son opacos, absurdos e imposibles de comprender o combatir.',
+    icfes_competency: 'Literatura',
+  },
+];
+
+// ── Adaptador de formato (authoring) → esquema real de BD ────────────────────
+const CI = { A: 0, B: 1, C: 2, D: 3 };
+const rows = questions.map(q => ({
+  subject:          q.subject,
+  topic:            q.topic,
+  difficulty:       q.difficulty,
+  stem:             q.stem,
+  context_text:     q.context ?? null,
+  options_json:     [q.options_json.A, q.options_json.B, q.options_json.C, q.options_json.D],
+  correct_index:    CI[q.correct_index],
+  explanation:      q.explanation,
+  icfes_competency: q.icfes_competency ?? null,
+}));
+
+async function seed() {
+  console.log(`📦 Insertando ${rows.length} preguntas de Lectura Crítica (medio+difícil)…`);
+
+  const { data, error } = await supabase
+    .from('questions')
+    .insert(rows)
+    .select('id');
+
+  if (error) {
+    console.error('❌ Error al insertar:', error.message);
+    process.exit(1);
+  }
+
+  console.log(`✅ ${data.length} preguntas insertadas exitosamente.`);
+  console.log(`   IDs: ${data[0].id} … ${data[data.length - 1].id}`);
+
+  const { count } = await supabase
+    .from('questions')
+    .select('*', { count: 'exact', head: true })
+    .eq('subject', 'Lectura Crítica');
+
+  console.log(`📊 Total de preguntas de Lectura Crítica en BD: ${count}`);
+}
+
+seed();

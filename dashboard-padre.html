@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Objetivo 500 — Panel de Padres</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .child-card {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-5) var(--space-5);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      transition: border-color var(--transition-normal);
+      cursor: pointer;
+    }
+    .child-card:hover { border-color: var(--accent-purple); }
+    .child-card.selected { border-color: var(--accent-purple); background: var(--accent-purple-dim); }
+
+    .alert-card {
+      padding: var(--space-4);
+      background: rgba(239,68,68,.08);
+      border: 1px solid rgba(239,68,68,.2);
+      border-radius: var(--radius-lg);
+      font-size: .85rem;
+      color: var(--text-secondary);
+    }
+
+    .alert-card.warn {
+      background: rgba(245,158,11,.08);
+      border-color: rgba(245,158,11,.2);
+    }
+
+    .section-title {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+      margin-bottom: var(--space-3);
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar__logo">
+      <div class="logo-icon" aria-hidden="true">🎯</div>
+      Objetivo 500 · Padres
+    </div>
+    <div class="navbar__actions">
+      <span id="parent-name" style="font-size:.85rem;color:var(--text-muted)"></span>
+      <button class="btn btn--ghost btn--sm" id="btn-logout">Cerrar sesión</button>
+    </div>
+  </nav>
+
+  <main style="max-width:960px;margin:0 auto;padding:var(--space-6) var(--space-4) var(--space-16);
+               display:grid;grid-template-columns:280px 1fr;gap:var(--space-6);align-items:start">
+
+    <!-- Columna izquierda: lista de hijos -->
+    <aside>
+      <p class="section-title">Mis hijos</p>
+      <div id="children-list" style="display:flex;flex-direction:column;gap:var(--space-3)">
+        <div class="empty-state"><p>Cargando…</p></div>
+      </div>
+
+      <button class="btn btn--ghost btn--sm btn--full" style="margin-top:var(--space-4)" id="btn-add-child">
+        + Vincular hijo/a
+      </button>
+    </aside>
+
+    <!-- Columna derecha: detalle del hijo seleccionado -->
+    <div id="child-detail">
+      <div class="empty-state">
+        <div class="empty-state-icon">👨‍👩‍👧</div>
+        <h3>Selecciona un hijo para ver su progreso</h3>
+        <p>Haz clic en una tarjeta de la izquierda.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script type="module">
+    import { supabase, requireAuth, signOut } from './supabase-config.js';
+
+    let parentProfile = null;
+    let selectedChildId = null;
+
+    // ── Bootstrap ──────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
+      parentProfile = await requireAuth('parent');
+      if (!parentProfile) return;
+
+      document.getElementById('parent-name').textContent = parentProfile.username;
+      document.getElementById('btn-logout').addEventListener('click', signOut);
+      document.getElementById('btn-add-child').addEventListener('click', showLinkChildModal);
+
+      await loadChildren();
+    });
+
+    // ── Cargar lista de hijos ──────────────────────────────────
+    async function loadChildren() {
+      const { data, error } = await supabase
+        .from('students')
+        .select(`
+          *,
+          profiles(username, avatar_url)
+        `)
+        .eq('parent_id', parentProfile.id);
+
+      const container = document.getElementById('children-list');
+
+      if (error || !data || data.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state" style="padding:var(--space-6)">
+            <p style="font-size:.85rem">Aún no tienes hijos vinculados.</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = data.map(child => {
+        const p = child.profiles;
+        return `
+          <div class="child-card" id="child-card-${child.id}"
+               onclick="selectChild('${child.id}', ${JSON.stringify(child).replace(/"/g, '&quot;')})">
+            <img class="avatar"
+                 src="${p?.avatar_url || `https://api.dicebear.com/8.x/thumbs/svg?seed=${p?.username}`}"
+                 alt="${p?.username}" />
+            <div>
+              <div style="font-weight:700">${p?.username ?? '—'}</div>
+              <div style="font-size:.75rem;color:var(--text-muted)">
+                ${child.rank} · ${child.xp_total} XP
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                <span class="streak-chip" style="font-size:.7rem;padding:2px 8px">
+                  🔥 ${child.streak_days} días
+                </span>
+              </div>
+            </div>
+            <div style="font-size:1.5rem">${rankEmoji(child.rank)}</div>
+          </div>`;
+      }).join('');
+
+      // Auto-seleccionar el primero
+      if (data.length === 1) {
+        window.selectChild(data[0].id, data[0]);
+      }
+    }
+
+    const rankEmoji = r => ({ novato:'🔰', explorador:'🌿', avanzado:'⭐', diamante:'💎', leyenda:'🏆' }[r] ?? '🔰');
+
+    // ── Seleccionar hijo ───────────────────────────────────────
+    window.selectChild = async function(childId, child) {
+      selectedChildId = childId;
+
+      // Highlight en la lista
+      document.querySelectorAll('.child-card').forEach(el => el.classList.remove('selected'));
+      document.getElementById(`child-card-${childId}`)?.classList.add('selected');
+
+      const detail = document.getElementById('child-detail');
+      detail.innerHTML = `<div class="empty-state"><p>Cargando datos de ${child.profiles?.username ?? ''}…</p></div>`;
+
+      await Promise.all([
+        renderChildDetail(childId, child),
+      ]);
+    };
+
+    async function renderChildDetail(childId, child) {
+      const profile = child.profiles;
+      const detail  = document.getElementById('child-detail');
+
+      // Obtener respuestas recientes + debilidades + insignias
+      const [answersRes, weakRes, badgesRes, licenseRes] = await Promise.all([
+        supabase
+          .from('student_answers')
+          .select('is_correct, time_seconds, created_at, questions(subject, topic, difficulty)')
+          .eq('student_id', childId)
+          .order('created_at', { ascending: false })
+          .limit(100),
+        supabase
+          .from('weak_topics')
+          .select('*')
+          .eq('student_id', childId)
+          .order('error_rate', { ascending: false })
+          .limit(5),
+        supabase
+          .from('student_badges')
+          .select('unlocked_at, badges(slug, name, icon_url)')
+          .eq('student_id', childId),
+        supabase
+          .from('licenses')
+          .select('*')
+          .eq('student_id', childId)
+          .single(),
+      ]);
+
+      const answers  = answersRes.data ?? [];
+      const weak     = weakRes.data ?? [];
+      const badges   = badgesRes.data ?? [];
+      const license  = licenseRes.data;
+
+      // Calcular métricas
+      const total    = answers.length;
+      const correct  = answers.filter(a => a.is_correct).length;
+      const pct      = total > 0 ? Math.round((correct / total) * 100) : 0;
+      const avgTime  = total > 0 ? Math.round(answers.reduce((s,a) => s + a.time_seconds, 0) / total) : 0;
+      const today    = new Date().toDateString();
+      const todayAns = answers.filter(a => new Date(a.created_at).toDateString() === today).length;
+      const estimated = Math.round((pct / 100) * 500);
+
+      // Actividad últimos 7 días
+      const last7 = buildActivityData(answers, 7);
+
+      detail.innerHTML = `
+        <!-- Cabecera hijo -->
+        <div class="panel" style="display:flex;align-items:center;gap:var(--space-4);margin-bottom:var(--space-5)">
+          <img class="avatar avatar--lg"
+               src="${profile?.avatar_url || `https://api.dicebear.com/8.x/thumbs/svg?seed=${profile?.username}`}"
+               alt="${profile?.username}" />
+          <div style="flex:1">
+            <h2 style="margin-bottom:var(--space-1)">${profile?.username ?? '—'}</h2>
+            <div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap">
+              <span class="rank-badge rank--${child.rank}">${child.rank}</span>
+              <span class="streak-chip ${child.streak_days > 0 ? 'active' : ''}">🔥 ${child.streak_days} días</span>
+              <span style="font-size:.8rem;color:var(--text-muted)">Nivel ${child.level} · ${child.xp_total} XP</span>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="score-badge" style="font-size:2.5rem">${estimated}</div>
+            <span class="score-label">puntaje est.</span>
+          </div>
+        </div>
+
+        <!-- Alertas inteligentes -->
+        ${buildAlerts(child, weak, todayAns, pct)}
+
+        <!-- Métricas clave -->
+        <div class="stats-grid" style="margin-bottom:var(--space-5)">
+          <div class="stat-card">
+            <div class="stat-value accent">${total}</div>
+            <div class="stat-label">Preguntas totales</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value green">${pct}%</div>
+            <div class="stat-label">Precisión</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" style="color:var(--warning)">${avgTime}s</div>
+            <div class="stat-label">Tiempo prom.</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${badges.length}</div>
+            <div class="stat-label">Insignias</div>
+          </div>
+        </div>
+
+        <!-- Actividad últimos 7 días -->
+        <div class="panel" style="margin-bottom:var(--space-5)">
+          <p class="section-title">Actividad reciente (7 días)</p>
+          <div style="display:flex;gap:var(--space-2);align-items:flex-end;height:60px">
+            ${last7.map(d => `
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+                <div style="flex:1;width:100%;background:var(--bg-overlay);border-radius:4px;overflow:hidden;display:flex;align-items:flex-end">
+                  <div style="width:100%;height:${d.pct}%;background:var(--gradient-brand);border-radius:4px;min-height:${d.count > 0 ? '4px' : '0'}"></div>
+                </div>
+                <span style="font-size:.6rem;color:var(--text-muted)">${d.label}</span>
+              </div>`).join('')}
+          </div>
+          <div style="text-align:center;margin-top:var(--space-2);font-size:.75rem;color:var(--text-muted)">
+            Hoy: ${todayAns} preguntas respondidas
+          </div>
+        </div>
+
+        <!-- Temas débiles -->
+        <div class="panel" style="margin-bottom:var(--space-5)">
+          <p class="section-title">⚠️ Temas que necesitan más práctica</p>
+          ${weak.length === 0
+            ? `<p style="font-size:.85rem;color:var(--text-muted)">Sin datos aún. ¡Que responda más preguntas!</p>`
+            : weak.map(w => `
+                <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-2)">
+                  <div style="flex:1">
+                    <div style="font-size:.85rem;font-weight:600">${w.topic}</div>
+                    <div style="font-size:.72rem;color:var(--text-muted)">${w.subject} · ${w.attempts} intentos</div>
+                  </div>
+                  <div style="text-align:right">
+                    <div style="font-size:.85rem;font-weight:700;color:var(--error)">${Math.round(w.error_rate * 100)}% errores</div>
+                    <div style="width:80px">
+                      <div class="xp-bar-track" style="height:4px">
+                        <div class="xp-bar-fill" style="width:${Math.round(w.error_rate * 100)}%;background:linear-gradient(135deg,#ef4444,#dc2626)"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>`).join('')}
+        </div>
+
+        <!-- Insignias -->
+        <div class="panel" style="margin-bottom:var(--space-5)">
+          <p class="section-title">Insignias desbloqueadas (${badges.length})</p>
+          <div style="display:flex;flex-wrap:wrap;gap:var(--space-2)">
+            ${badges.length === 0
+              ? `<p style="font-size:.85rem;color:var(--text-muted)">Aún sin insignias.</p>`
+              : badges.map(sb => `
+                  <div title="${sb.badges.name}" style="
+                    padding:8px 12px;background:var(--bg-elevated);border:1px solid var(--border);
+                    border-radius:var(--radius-lg);font-size:.75rem;font-weight:600;
+                    display:flex;align-items:center;gap:6px">
+                    <span>${sb.badges.icon_url}</span>
+                    <span style="color:var(--text-secondary)">${sb.badges.name}</span>
+                  </div>`).join('')}
+          </div>
+        </div>
+
+        <!-- Licencia -->
+        <div class="panel">
+          <p class="section-title">Plan activo</p>
+          ${license
+            ? `<div style="display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <span class="tag tag--purple">${license.plan.toUpperCase()}</span>
+                  <span style="font-size:.8rem;color:var(--text-muted);margin-left:8px">
+                    ${license.status === 'active'
+                      ? `Vence: ${new Date(license.expires_at).toLocaleDateString('es-CO')}`
+                      : license.status}
+                  </span>
+                </div>
+                <button class="btn btn--primary btn--sm" onclick="alert('Gestión de plan próximamente')">Gestionar</button>
+              </div>`
+            : `<div style="display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <span class="tag tag--gold">FREE</span>
+                  <span style="font-size:.8rem;color:var(--text-muted);margin-left:8px">Plan básico</span>
+                </div>
+                <button class="btn btn--green btn--sm" onclick="alert('Planes premium próximamente')">Mejorar plan</button>
+              </div>`}
+        </div>
+      `;
+    }
+
+    // ── Alertas inteligentes ───────────────────────────────────
+    function buildAlerts(child, weak, todayAns, pct) {
+      const alerts = [];
+
+      if (child.streak_days === 0) {
+        alerts.push(`<div class="alert-card" style="margin-bottom:var(--space-3)">
+          ⚠️ <strong>${child.profiles?.username ?? 'Tu hijo/a'}</strong> no ha estudiado hoy. La racha se reiniciará si no responde al menos una pregunta correcta.
+        </div>`);
+      }
+
+      if (weak.length > 0 && weak[0].error_rate > 0.7) {
+        alerts.push(`<div class="alert-card warn" style="margin-bottom:var(--space-3)">
+          📚 Alta dificultad en <strong>${weak[0].topic}</strong> (${Math.round(weak[0].error_rate * 100)}% errores).
+          Considera buscar recursos de apoyo en este tema.
+        </div>`);
+      }
+
+      if (pct < 50 && todayAns > 0) {
+        alerts.push(`<div class="alert-card" style="margin-bottom:var(--space-3)">
+          📉 Precisión por debajo del 50% hoy. Podría ser útil una sesión de repaso enfocada.
+        </div>`);
+      }
+
+      return alerts.join('') ;
+    }
+
+    // ── Actividad por día ──────────────────────────────────────
+    function buildActivityData(answers, days) {
+      const result = [];
+      const now = new Date();
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const key = d.toDateString();
+        const count = answers.filter(a => new Date(a.created_at).toDateString() === key).length;
+        result.push({
+          label: d.toLocaleDateString('es-CO', { weekday: 'short' }).slice(0,2),
+          count,
+          pct: 0,
+        });
+      }
+      const max = Math.max(1, ...result.map(r => r.count));
+      result.forEach(r => { r.pct = Math.round((r.count / max) * 100); });
+      return result;
+    }
+
+    // ── Modal vincular hijo ────────────────────────────────────
+    function showLinkChildModal() {
+      const modal = document.createElement('div');
+      modal.className = 'level-up-overlay';
+      modal.innerHTML = `
+        <div class="panel" style="max-width:360px;width:90%">
+          <h3 style="margin-bottom:var(--space-4)">Vincular hijo/a</h3>
+          <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:var(--space-4)">
+            Ingresa el nombre de usuario de la cuenta estudiante de tu hijo/a.
+          </p>
+          <div class="form-group" style="margin-bottom:var(--space-4)">
+            <label class="form-label" for="child-username">Nombre de usuario del estudiante</label>
+            <input class="form-input" type="text" id="child-username" placeholder="ej. juancho2026" />
+          </div>
+          <div id="link-msg" style="font-size:.8rem;color:var(--error);margin-bottom:var(--space-3);display:none"></div>
+          <div style="display:flex;gap:var(--space-3)">
+            <button class="btn btn--primary btn--full" id="btn-confirm-link">Vincular</button>
+            <button class="btn btn--ghost btn--full" onclick="this.closest('.level-up-overlay').remove()">Cancelar</button>
+          </div>
+        </div>`;
+      document.body.appendChild(modal);
+
+      document.getElementById('btn-confirm-link').addEventListener('click', async () => {
+        const username = document.getElementById('child-username').value.trim();
+        const msgEl    = document.getElementById('link-msg');
+
+        if (!username) { msgEl.style.display = 'block'; msgEl.textContent = 'Ingresa un nombre de usuario.'; return; }
+
+        // Buscar el estudiante por username
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('id, role')
+          .eq('username', username)
+          .single();
+
+        if (!profileData || profileData.role !== 'student') {
+          msgEl.style.display = 'block';
+          msgEl.textContent = 'Usuario no encontrado o no es una cuenta de estudiante.';
+          return;
+        }
+
+        // Actualizar parent_id del estudiante
+        const { error } = await supabase
+          .from('students')
+          .update({ parent_id: parentProfile.id })
+          .eq('profile_id', profileData.id)
+          .is('parent_id', null); // solo si no tiene padre asignado
+
+        if (error) {
+          msgEl.style.display = 'block';
+          msgEl.textContent = 'Error al vincular. Es posible que este estudiante ya esté vinculado a otra cuenta.';
+          return;
+        }
+
+        modal.remove();
+        await loadChildren();
+      });
+    }
+
+  </script>
+</body>
+</html>

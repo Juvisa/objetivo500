@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Objetivo 500 — Estudiar</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar__logo">
+      <div class="logo-icon" aria-hidden="true">🎯</div>
+      Objetivo 500
+    </div>
+    <div class="navbar__actions" id="header-user" aria-live="polite"></div>
+  </nav>
+
+  <main id="app-root" style="max-width:900px;margin:0 auto;padding:var(--space-6) var(--space-4) var(--space-16)">
+    <div class="empty-state" style="padding-top:120px">
+      <div style="font-size:2rem;margin-bottom:16px">⏳</div>
+      <p>Cargando…</p>
+    </div>
+  </main>
+
+  <div id="toast-container" class="toast-container" aria-live="assertive" aria-atomic="false"></div>
+
+  <!-- Supabase UMD — sin módulos ES -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    // Globals que app.js usa directamente (var = verdadero global entre scripts)
+    var SUPABASE_URL      = 'https://bekvduhzoxufixykxphy.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJla3ZkdWh6b3h1Zml4eWt4cGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NzIwNjksImV4cCI6MjA5MjM0ODA2OX0.S_fSyBAJ1IS9E3H_W7I8vXwEhRqnczNAHa1S7kvKxvM';
+
+    var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true },
+    });
+
+    async function requireAuth(requiredRole = null) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = './login.html'; return null; }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user)    { window.location.href = './login.html'; return null; }
+      const { data: profile } = await supabase
+        .from('profiles').select('*').eq('user_id', user.id).maybeSingle();
+      if (!profile) { window.location.href = './login.html'; return null; }
+      if (requiredRole && profile.role !== requiredRole) {
+        window.location.href = profile.role === 'parent' ? './dashboard-padre.html' : './app.html';
+        return null;
+      }
+      return profile;
+    }
+
+    function subscribeToStudentChanges(studentId, callback) {
+      return supabase
+        .channel(`student:${studentId}`)
+        .on('postgres_changes', {
+          event: 'UPDATE', schema: 'public', table: 'students',
+          filter: `id=eq.${studentId}`,
+        }, callback)
+        .subscribe();
+    }
+
+    function subscribeToFeed(callback) {
+      return supabase
+        .channel('social_feed')
+        .on('postgres_changes', {
+          event: 'INSERT', schema: 'public', table: 'social_feed',
+        }, callback)
+        .subscribe();
+    }
+  </script>
+
+  <!-- app.js como script normal (sin type="module") -->
+  <script defer src="app.js"></script>
+</body>
+</html>
