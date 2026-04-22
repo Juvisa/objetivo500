@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="bodyGrad" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#f0abfc"/>
+      <stop offset="100%" stop-color="#6b21a8"/>
+    </radialGradient>
+    <linearGradient id="maneGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0abfc"/>
+      <stop offset="33%" stop-color="#818cf8"/>
+      <stop offset="66%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#fde047"/>
+    </linearGradient>
+    <linearGradient id="hornGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="100%" stop-color="#e879f9"/>
+    </linearGradient>
+    <radialGradient id="glowPurple" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="100" cy="110" rx="88" ry="88" fill="url(#glowPurple)"/>
+  <!-- flowing tail -->
+  <path d="M130,152 Q158,140 166,114 Q156,112 152,126" fill="none" stroke="#c084fc" stroke-width="5" stroke-linecap="round"/>
+  <path d="M132,156 Q162,148 170,120" fill="none" stroke="#818cf8" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+  <path d="M128,160 Q156,152 164,128" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <!-- legs elegant -->
+  <rect x="72" y="155" width="12" height="32" rx="6" fill="#9333ea"/>
+  <rect x="88" y="158" width="12" height="29" rx="6" fill="#9333ea"/>
+  <rect x="100" y="155" width="12" height="32" rx="6" fill="#9333ea"/>
+  <rect x="115" y="158" width="12" height="29" rx="6" fill="#9333ea"/>
+  <!-- hooves with sparkle -->
+  <ellipse cx="78" cy="187" rx="9" ry="5" fill="#6b21a8"/>
+  <ellipse cx="94" cy="187" rx="9" ry="5" fill="#6b21a8"/>
+  <ellipse cx="106" cy="187" rx="9" ry="5" fill="#6b21a8"/>
+  <ellipse cx="121" cy="187" rx="9" ry="5" fill="#6b21a8"/>
+  <!-- body -->
+  <ellipse cx="100" cy="128" rx="42" ry="38" fill="url(#bodyGrad)"/>
+  <!-- belly shimmer -->
+  <ellipse cx="100" cy="136" rx="24" ry="26" fill="#fae8ff" opacity="0.6"/>
+  <!-- wing-like side mane flourishes -->
+  <path d="M58,106 Q34,82 36,110 Q46,102 50,114 Q38,124 42,140 Q52,130 58,138 Z" fill="#c084fc" opacity="0.7"/>
+  <path d="M142,106 Q166,82 164,110 Q154,102 150,114 Q162,124 158,140 Q148,130 142,138 Z" fill="#c084fc" opacity="0.7"/>
+  <!-- mane along wing -->
+  <path d="M38,112 Q46,104 52,114" fill="none" stroke="url(#maneGrad)" stroke-width="3"/>
+  <path d="M40,124 Q48,118 54,126" fill="none" stroke="url(#maneGrad)" stroke-width="3"/>
+  <path d="M162,112 Q154,104 148,114" fill="none" stroke="url(#maneGrad)" stroke-width="3"/>
+  <path d="M160,124 Q152,118 146,126" fill="none" stroke="url(#maneGrad)" stroke-width="3"/>
+  <!-- neck -->
+  <rect x="86" y="82" width="28" height="42" rx="14" fill="#b060f0"/>
+  <!-- flowing mane on neck -->
+  <path d="M78,80 Q62,96 64,114 Q72,106 72,118 Q78,106 80,120" fill="url(#maneGrad)" opacity="0.9"/>
+  <!-- head -->
+  <ellipse cx="100" cy="68" rx="32" ry="26" fill="#c084fc"/>
+  <!-- snout refined -->
+  <ellipse cx="108" cy="78" rx="14" ry="9" fill="#f5d0fe"/>
+  <circle cx="106" cy="78" r="2" fill="#7e22ce" opacity="0.5"/>
+  <circle cx="112" cy="78" r="2" fill="#7e22ce" opacity="0.5"/>
+  <!-- eyes large and beautiful -->
+  <circle cx="85" cy="63" r="10" fill="#1e1b4b"/>
+  <circle cx="114" cy="63" r="10" fill="#1e1b4b"/>
+  <circle cx="87" cy="61" r="5" fill="#a78bfa"/>
+  <circle cx="116" cy="61" r="5" fill="#a78bfa"/>
+  <circle cx="88" cy="62" r="2.5" fill="white"/>
+  <circle cx="117" cy="62" r="2.5" fill="white"/>
+  <!-- eyelashes elegant -->
+  <line x1="79" y1="57" x2="76" y2="50" stroke="#6b21a8" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="83" y1="55" x2="81" y2="48" stroke="#6b21a8" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="87" y1="54" x2="86" y2="47" stroke="#6b21a8" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- horn tall and spiral -->
+  <polygon points="100,38 94,66 106,66" fill="url(#hornGrad)"/>
+  <line x1="100" y1="38" x2="97" y2="56" stroke="white" stroke-width="1" opacity="0.4"/>
+  <line x1="100" y1="46" x2="103" y2="60" stroke="white" stroke-width="1" opacity="0.3"/>
+  <!-- sparkle at horn tip -->
+  <circle cx="100" cy="38" r="4" fill="#fde047" opacity="0.8"/>
+  <!-- flowing mane on head -->
+  <path d="M76,56 Q58,68 60,84 Q68,76 68,88" fill="url(#maneGrad)" opacity="0.85"/>
+  <!-- sparkles -->
+  <text x="136" y="55" font-size="13" fill="#f0abfc">✦</text>
+  <text x="52" y="92" font-size="10" fill="#c084fc">✦</text>
+  <text x="148" y="100" font-size="9" fill="#e879f9">✦</text>
+  <text x="42" y="148" font-size="8" fill="#a78bfa">✦</text>
+  <text x="155" y="150" font-size="11" fill="#818cf8">✦</text>
+</svg>

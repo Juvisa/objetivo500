@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="bodyGrad" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#fef3c7"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </radialGradient>
+  </defs>
+  <!-- broken egg bottom -->
+  <path d="M60,158 Q70,142 85,150 Q96,136 108,150 Q122,140 140,158 Z" fill="#92400e" opacity="0.7"/>
+  <ellipse cx="100" cy="163" rx="42" ry="16" fill="#78350f" opacity="0.5"/>
+  <!-- lion body (lower half) -->
+  <ellipse cx="100" cy="140" rx="30" ry="26" fill="#d97706"/>
+  <!-- eagle body (upper half) -->
+  <ellipse cx="100" cy="115" rx="28" ry="30" fill="#b45309"/>
+  <!-- belly / chest feathers -->
+  <ellipse cx="100" cy="122" rx="16" ry="18" fill="#fef3c7" opacity="0.9"/>
+  <!-- eagle head -->
+  <circle cx="100" cy="84" r="25" fill="#92400e"/>
+  <!-- beak -->
+  <path d="M100,96 L115,102 L100,108 Z" fill="#f59e0b"/>
+  <!-- eyes -->
+  <circle cx="88" cy="80" r="7" fill="#1c1917"/>
+  <circle cx="112" cy="80" r="7" fill="#1c1917"/>
+  <circle cx="90" cy="78" r="3" fill="#fbbf24"/>
+  <circle cx="114" cy="78" r="3" fill="#fbbf24"/>
+  <circle cx="91" cy="79" r="1.5" fill="white"/>
+  <circle cx="115" cy="79" r="1.5" fill="white"/>
+  <!-- ear tufts -->
+  <path d="M82,68 Q76,52 86,60 Z" fill="#78350f"/>
+  <path d="M118,68 Q124,52 114,60 Z" fill="#78350f"/>
+  <!-- small wings -->
+  <path d="M72,112 Q48,90 52,122 Q62,116 72,124 Z" fill="#b45309" opacity="0.9"/>
+  <path d="M128,112 Q152,90 148,122 Q138,116 128,124 Z" fill="#b45309" opacity="0.9"/>
+  <!-- wing feather hints -->
+  <path d="M54,106 Q48,114 54,120" fill="none" stroke="#d97706" stroke-width="1.5"/>
+  <path d="M146,106 Q152,114 146,120" fill="none" stroke="#d97706" stroke-width="1.5"/>
+</svg>

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reto de Resurrección — Objetivo 500</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── Layout principal ─────────────────────────────────────── */
+    #rr-root {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: var(--space-6) var(--space-4) var(--space-16);
+    }
+
+    /* ── Pantalla de advertencia (paso 1) ───────────────────── */
+    .rr-warning {
+      background: var(--bg-elevated);
+      border: 2px solid var(--error);
+      border-radius: 16px;
+      padding: var(--space-8) var(--space-6);
+      text-align: center;
+      animation: cardIn .35s ease both;
+    }
+    .rr-warning__icon { font-size: 4rem; margin-bottom: var(--space-4); }
+    .rr-warning__title { font-size: 1.6rem; font-weight: 800; color: var(--error); margin-bottom: var(--space-3); }
+    .rr-warning__penalty {
+      background: rgba(239,68,68,.1);
+      border: 1px solid rgba(239,68,68,.3);
+      border-radius: 10px;
+      padding: var(--space-4);
+      margin: var(--space-5) 0;
+    }
+    .rr-warning__penalty strong { color: var(--error); font-size: 1.1rem; }
+    .rr-warning__rules {
+      text-align: left;
+      color: var(--text-secondary);
+      font-size: .9rem;
+      line-height: 1.8;
+      margin-bottom: var(--space-6);
+    }
+    .rr-warning__rules li { margin-bottom: var(--space-1); }
+
+    /* ── Barra de racha ──────────────────────────────────────── */
+    .rr-streak-bar {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: var(--space-3) var(--space-4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-4);
+    }
+    .rr-streak-dots {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .rr-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--border-light);
+      transition: background .25s, transform .2s;
+    }
+    .rr-dot--ok   { background: var(--accent-green); transform: scale(1.1); }
+    .rr-dot--fail { background: var(--error); animation: shakeDot .3s ease; }
+
+    @keyframes shakeDot {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-4px); }
+      75%      { transform: translateX(4px); }
+    }
+
+    /* ── Animación de resurrección ───────────────────────────── */
+    .rr-resurrection {
+      text-align: center;
+      padding: var(--space-10) var(--space-4);
+      animation: cardIn .4s ease both;
+    }
+    .rr-resurrection__sparkles {
+      font-size: 2rem;
+      margin-bottom: var(--space-4);
+      animation: pulse 1s infinite alternate;
+    }
+    .rr-resurrection__img {
+      width: 140px;
+      height: 140px;
+      object-fit: contain;
+      margin: 0 auto var(--space-4);
+      display: block;
+      animation: levitate 2s ease-in-out infinite alternate;
+    }
+    @keyframes levitate {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-12px); }
+    }
+    @keyframes pulse { from { opacity: .7; } to { opacity: 1; } }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar__logo">
+      <div class="logo-icon" aria-hidden="true">🎯</div>
+      Objetivo 500
+    </div>
+    <div class="navbar__actions">
+      <a href="./app.html" class="btn btn--ghost btn--sm">← Volver</a>
+    </div>
+  </nav>
+
+  <main id="rr-root">
+    <div class="empty-state" style="padding-top:80px">
+      <div style="font-size:2rem;margin-bottom:16px">⏳</div>
+      <p>Preparando el reto…</p>
+    </div>
+  </main>
+
+  <div id="toast-container" class="toast-container" aria-live="assertive" aria-atomic="false"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    var SUPABASE_URL      = 'https://bekvduhzoxufixykxphy.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJla3ZkdWh6b3h1Zml4eWt4cGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NzIwNjksImV4cCI6MjA5MjM0ODA2OX0.S_fSyBAJ1IS9E3H_W7I8vXwEhRqnczNAHa1S7kvKxvM';
+    var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true },
+    });
+
+    function showToast(title, msg, icon, type) {
+      const c = document.getElementById('toast-container');
+      if (!c) return;
+      const t = document.createElement('div');
+      t.className = `toast toast--${type ?? 'info'}`;
+      t.setAttribute('role', 'alert');
+      t.innerHTML = `<span class="toast__icon" aria-hidden="true">${icon ?? 'ℹ️'}</span><div><strong>${title}</strong>${msg ? `<p>${msg}</p>` : ''}</div>`;
+      c.appendChild(t);
+      setTimeout(() => t.remove(), 5000);
+    }
+  </script>
+  <script src="guardian.js"></script>
+  <script>
+    'use strict';
+
+    // ── Estado del reto ───────────────────────────────────────────
+    const RETO = {
+      userId:      null,
+      guardian:    null,
+      preguntas:   [],   // 15 preguntas cargadas del banco
+      idx:         0,    // pregunta actual (0–14)
+      racha:       0,    // correctas consecutivas
+      respondido:  false,
+    };
+
+    const LETRAS = ['A', 'B', 'C', 'D'];
+
+    // ── Bootstrap ────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = './login.html'; return; }
+      RETO.userId = session.user.id;
+
+      RETO.guardian = await Guardian.get(RETO.userId);
+      if (!RETO.guardian) { window.location.href = './app.html'; return; }
+
+      // Solo petrificados pueden hacer el reto
+      if (RETO.guardian.estado !== 'petrificado') {
+        window.location.href = './app.html';
+        return;
+      }
+
+      renderAdvertencia();
+    });
+
+    // ── Paso 1: Advertencia con penalización ─────────────────────
+    function renderAdvertencia() {
+      const cfg    = Guardian.getConfig(RETO.guardian.tipo_guardian);
+      const imgSrc = Guardian.getImagen(RETO.guardian.tipo_guardian, RETO.guardian.nivel_evolucion);
+      const xpPerd = Math.floor(RETO.guardian.xp_total * 0.5);
+
+      document.getElementById('rr-root').innerHTML = `
+        <div class="rr-warning">
+          <div class="rr-warning__icon" aria-hidden="true">💀</div>
+          <h1 class="rr-warning__title">Reto de Resurrección</h1>
+          <img
+            src="${imgSrc}"
+            alt="${cfg.nombre} petrificado"
+            style="width:90px;height:90px;object-fit:contain;margin:0 auto var(--space-4);display:block;filter:grayscale(100%) sepia(50%)"
+            onerror="this.style.display='none'"
+          />
+          <p style="color:var(--text-secondary);margin-bottom:var(--space-4)">
+            <strong style="color:var(--text-primary)">${cfg.nombre}</strong> está petrificado. Para revivir necesitas demostrar tu dedicación.
+          </p>
+
+          <div class="rr-warning__penalty">
+            <p style="color:var(--text-muted);font-size:.8rem;margin-bottom:4px">PENALIZACIÓN AL REVIVIR</p>
+            <strong>Perderás ${xpPerd.toLocaleString('es-CO')} XP (50% de tu total)</strong>
+            <p style="color:var(--text-muted);font-size:.82rem;margin-top:4px">
+              Tu guardián volverá con ${Math.floor(RETO.guardian.xp_total * 0.5).toLocaleString('es-CO')} XP y 50% de energía.
+            </p>
+          </div>
+
+          <ul class="rr-warning__rules">
+            <li>✅ Debes responder <strong>15 preguntas seguidas</strong> sin fallar ninguna.</li>
+            <li>❌ Si fallas una, el contador se reinicia desde cero (las mismas preguntas).</li>
+            <li>⏱️ Sin límite de tiempo — tómate el tiempo que necesites.</li>
+            <li>💀 La penalización de XP solo se aplica cuando completas las 15 correctas.</li>
+          </ul>
+
+          <div style="display:flex;gap:var(--space-3);justify-content:center;flex-wrap:wrap">
+            <button class="btn btn--primary" style="min-width:180px" onclick="iniciarReto()">
+              ⚡ Aceptar y comenzar
+            </button>
+            <a href="./app.html" class="btn btn--ghost" style="min-width:120px">Cancelar</a>
+          </div>
+        </div>`;
+    }
+
+    // ── Paso 2: Cargar preguntas y comenzar ───────────────────────
+    async function iniciarReto() {
+      const root = document.getElementById('rr-root');
+      root.innerHTML = `
+        <div class="empty-state" style="padding-top:80px">
+          <div style="font-size:2rem;margin-bottom:16px">⏳</div>
+          <p>Cargando preguntas del reto…</p>
+        </div>`;
+
+      // Obtener 15 preguntas aleatorias del banco
+      const { data, error } = await supabase
+        .rpc('get_session_questions', {
+          p_student_id: RETO.userId,
+          p_n:          15,
+          p_subject:    null,
+        });
+
+      if (error || !data || data.length === 0) {
+        // Fallback: obtener preguntas directamente si el RPC falla
+        const { data: fallback } = await supabase
+          .from('questions')
+          .select('*')
+          .limit(15);
+
+        if (!fallback || fallback.length === 0) {
+          showToast('Sin preguntas', 'No se encontraron preguntas. Intenta más tarde.', '⚠️', 'error');
+          setTimeout(() => { window.location.href = './app.html'; }, 3000);
+          return;
+        }
+        RETO.preguntas = fallback;
+      } else {
+        RETO.preguntas = data;
+      }
+
+      RETO.idx       = 0;
+      RETO.racha     = 0;
+      RETO.respondido = false;
+      renderPregunta();
+    }
+
+    // ── Renderizar pregunta actual ────────────────────────────────
+    function renderPregunta() {
+      const root = document.getElementById('rr-root');
+      const q    = RETO.preguntas[RETO.idx];
+      if (!q) return;
+
+      const opts   = Array.isArray(q.options_json) ? q.options_json : JSON.parse(q.options_json ?? '[]');
+      const cfg    = Guardian.getConfig(RETO.guardian.tipo_guardian);
+      RETO.respondido = false;
+
+      root.innerHTML = `
+        <!-- Barra de racha -->
+        <div class="rr-streak-bar" aria-live="polite" aria-label="Racha de respuestas correctas: ${RETO.racha} de 15">
+          <div>
+            <p style="font-size:.75rem;color:var(--text-muted);margin-bottom:4px">RACHA DE RESURRECCIÓN</p>
+            <p style="font-weight:700;font-size:1.1rem;color:${cfg.colorAcento}">${RETO.racha} / 15 correctas seguidas</p>
+          </div>
+          <div class="rr-streak-dots" id="rr-dots" aria-hidden="true">
+            ${Array.from({ length: 15 }, (_, i) => `
+              <div class="rr-dot ${i < RETO.racha ? 'rr-dot--ok' : ''}" id="dot-${i}" title="Pregunta ${i + 1}"></div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Tarjeta de pregunta -->
+        <div class="panel" style="animation:cardIn .3s ease both">
+          <p style="font-size:.75rem;color:var(--text-muted);margin-bottom:var(--space-3)">
+            Pregunta ${RETO.idx + 1} de ${RETO.preguntas.length}
+            · <span style="color:${cfg.colorAcento};font-weight:600">${q.subject?.replace(/_/g,' ') ?? ''}</span>
+          </p>
+
+          ${q.context_text ? `
+            <div class="context-block" style="margin-bottom:var(--space-4);padding:var(--space-4);background:var(--bg-overlay);border-radius:10px;font-size:.88rem;line-height:1.7;color:var(--text-secondary)">
+              ${q.context_text}
+            </div>` : ''}
+
+          <p style="font-weight:600;font-size:1rem;line-height:1.6;margin-bottom:var(--space-5)">${q.stem}</p>
+
+          <div style="display:flex;flex-direction:column;gap:var(--space-2-5)" id="rr-opts" role="group" aria-label="Opciones de respuesta">
+            ${opts.map((opt, i) => `
+              <button
+                class="answer-btn"
+                onclick="responder(${i})"
+                aria-label="Opción ${LETRAS[i]}: ${opt}"
+                id="opt-${i}"
+              >
+                <span class="answer-btn__letter">${LETRAS[i]}</span>
+                <span>${opt}</span>
+              </button>`).join('')}
+          </div>
+
+          <div id="rr-feedback" style="margin-top:var(--space-4)"></div>
+        </div>`;
+    }
+
+    // ── Procesar respuesta ────────────────────────────────────────
+    async function responder(idx) {
+      if (RETO.respondido) return;
+      RETO.respondido = true;
+
+      const q       = RETO.preguntas[RETO.idx];
+      const esCorr  = idx === q.correct_index;
+      const opts    = Array.isArray(q.options_json) ? q.options_json : JSON.parse(q.options_json ?? '[]');
+      const cfg     = Guardian.getConfig(RETO.guardian.tipo_guardian);
+
+      // Resaltar opción elegida y correcta
+      document.querySelectorAll('.answer-btn').forEach((btn, i) => {
+        btn.disabled = true;
+        if (i === q.correct_index) btn.classList.add('answer-btn--correct');
+        else if (i === idx && !esCorr) btn.classList.add('answer-btn--wrong');
+      });
+
+      const feedbackEl = document.getElementById('rr-feedback');
+
+      if (esCorr) {
+        RETO.racha++;
+        // Actualizar dot
+        const dot = document.getElementById(`dot-${RETO.racha - 1}`);
+        if (dot) dot.classList.add('rr-dot--ok');
+
+        if (RETO.racha >= 15) {
+          // ¡Reto completado!
+          feedbackEl.innerHTML = `
+            <div style="text-align:center;padding:var(--space-4) 0">
+              <p style="color:var(--accent-green-light);font-weight:700;font-size:1.1rem">✅ ¡Correcto! Cargando resurrección…</p>
+            </div>`;
+          await completarReto();
+          return;
+        }
+
+        feedbackEl.innerHTML = `
+          <div style="background:var(--accent-green-dim);border:1px solid var(--accent-green);border-radius:10px;padding:var(--space-3) var(--space-4)">
+            <p style="color:var(--accent-green-light);font-weight:600;margin-bottom:4px">✅ ¡Correcto! Racha: ${RETO.racha}/15</p>
+            ${q.explanation ? `<p style="font-size:.85rem;color:var(--text-secondary);margin:0">${q.explanation}</p>` : ''}
+          </div>
+          <div style="text-align:center;margin-top:var(--space-4)">
+            <button class="btn btn--primary" style="background:${cfg.colorAcento};border-color:${cfg.colorAcento};color:#000" onclick="siguientePregunta()">
+              Siguiente →
+            </button>
+          </div>`;
+      } else {
+        // ¡Falló! — reiniciar racha y volver a pregunta 0 (mismas preguntas)
+        const dotFail = document.getElementById(`dot-${RETO.racha}`);
+        if (dotFail) {
+          dotFail.classList.add('rr-dot--fail');
+          setTimeout(() => dotFail.classList.remove('rr-dot--fail'), 400);
+        }
+        RETO.racha = 0;
+
+        feedbackEl.innerHTML = `
+          <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.4);border-radius:10px;padding:var(--space-3) var(--space-4)">
+            <p style="color:var(--error);font-weight:600;margin-bottom:4px">❌ Incorrecto — La respuesta era ${LETRAS[q.correct_index]}</p>
+            ${q.explanation ? `<p style="font-size:.85rem;color:var(--text-secondary);margin:0 0 var(--space-2)">${q.explanation}</p>` : ''}
+            <p style="font-size:.85rem;color:var(--warning)">⚠️ La racha se reinicia. ¡Vuelves a la pregunta 1!</p>
+          </div>
+          <div style="text-align:center;margin-top:var(--space-4)">
+            <button class="btn btn--ghost" onclick="reiniciarRacha()">Reiniciar reto desde el principio</button>
+          </div>`;
+      }
+    }
+
+    // ── Siguiente pregunta ────────────────────────────────────────
+    function siguientePregunta() {
+      RETO.idx++;
+      if (RETO.idx >= RETO.preguntas.length) RETO.idx = 0; // cicla si se acaban
+      renderPregunta();
+    }
+
+    // ── Reiniciar racha (después de fallo) ────────────────────────
+    function reiniciarRacha() {
+      RETO.idx   = 0;
+      RETO.racha = 0;
+      renderPregunta();
+    }
+
+    // ── Completar el reto: revivir al guardián ────────────────────
+    async function completarReto() {
+      const resultado = await Guardian.revivir(RETO.userId, RETO.racha);
+
+      if (!resultado.ok) {
+        showToast('Error', resultado.error ?? 'No se pudo revivir al guardián.', '❌', 'error');
+        return;
+      }
+
+      const g      = resultado.guardian;
+      const cfg    = Guardian.getConfig(g.tipo_guardian);
+      const imgSrc = Guardian.getImagen(g.tipo_guardian, g.nivel_evolucion);
+
+      document.getElementById('rr-root').innerHTML = `
+        <div class="rr-resurrection">
+          <div class="rr-resurrection__sparkles" aria-hidden="true">✨ ⚡ ✨</div>
+          <img
+            src="${imgSrc}"
+            alt="${cfg.nombre} renaciendo"
+            class="rr-resurrection__img"
+            onerror="this.style.display='none'"
+          />
+          <h1 style="font-size:2rem;font-weight:800;color:${cfg.colorAcento};margin-bottom:var(--space-3)">
+            ¡${cfg.nombre} ha renacido!
+          </h1>
+          <p style="color:var(--text-secondary);font-size:1rem;max-width:400px;margin:0 auto var(--space-4)">
+            Tu dedicación lo ha devuelto a la vida. ¡Ahora cuídalo bien y no dejes de estudiar!
+          </p>
+          <div class="stats-grid" style="max-width:340px;margin:0 auto var(--space-6)">
+            <div class="stat-card">
+              <div class="stat-value" style="color:var(--accent-green)">50%</div>
+              <div class="stat-label">Energía vital</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value accent">${g.xp_total.toLocaleString('es-CO')}</div>
+              <div class="stat-label">XP restante</div>
+            </div>
+          </div>
+          <a href="./app.html" class="btn btn--primary" style="min-width:200px;background:${cfg.colorAcento};border-color:${cfg.colorAcento};color:#000">
+            ¡A seguir estudiando! →
+          </a>
+        </div>`;
+    }
+  </script>
+</body>
+</html>

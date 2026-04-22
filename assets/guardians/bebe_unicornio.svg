@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="bodyGrad" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#f5d0fe"/>
+      <stop offset="100%" stop-color="#9333ea"/>
+    </radialGradient>
+    <linearGradient id="maneGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0abfc"/>
+      <stop offset="50%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+  </defs>
+  <!-- broken egg bottom -->
+  <path d="M62,160 Q72,144 88,152 Q98,138 110,152 Q124,142 138,160 Z" fill="#4c1d95" opacity="0.7"/>
+  <ellipse cx="100" cy="165" rx="40" ry="15" fill="#4c1d95" opacity="0.5"/>
+  <!-- body -->
+  <ellipse cx="100" cy="135" rx="30" ry="32" fill="url(#bodyGrad)"/>
+  <!-- belly -->
+  <ellipse cx="100" cy="140" rx="16" ry="18" fill="#fae8ff" opacity="0.8"/>
+  <!-- head -->
+  <circle cx="100" cy="90" r="27" fill="#c084fc"/>
+  <!-- snout -->
+  <ellipse cx="105" cy="100" rx="11" ry="7" fill="#f5d0fe"/>
+  <!-- nostril -->
+  <circle cx="103" cy="100" r="1.5" fill="#9333ea" opacity="0.7"/>
+  <circle cx="109" cy="100" r="1.5" fill="#9333ea" opacity="0.7"/>
+  <!-- eyes big cute -->
+  <circle cx="88" cy="86" r="8" fill="#1e1b4b"/>
+  <circle cx="112" cy="86" r="8" fill="#1e1b4b"/>
+  <circle cx="90" cy="84" r="3.5" fill="#a78bfa"/>
+  <circle cx="114" cy="84" r="3.5" fill="#a78bfa"/>
+  <circle cx="91" cy="85" r="2" fill="white"/>
+  <circle cx="115" cy="85" r="2" fill="white"/>
+  <!-- eyelashes -->
+  <line x1="82" y1="80" x2="80" y2="74" stroke="#4c1d95" stroke-width="1.5"/>
+  <line x1="86" y1="78" x2="85" y2="72" stroke="#4c1d95" stroke-width="1.5"/>
+  <!-- horn -->
+  <polygon points="100,62 96,78 104,78" fill="url(#maneGrad)"/>
+  <line x1="100" y1="62" x2="100" y2="78" stroke="#e879f9" stroke-width="0.5" opacity="0.5"/>
+  <!-- mane -->
+  <path d="M80,72 Q70,82 72,96 Q78,88 80,98 Q86,84 84,100" fill="url(#maneGrad)" opacity="0.9"/>
+  <!-- sparkles -->
+  <text x="130" y="78" font-size="10" fill="#f0abfc">✦</text>
+  <text x="62" y="115" font-size="8" fill="#c084fc">✦</text>
+  <text x="136" y="122" font-size="9" fill="#e879f9">✦</text>
+</svg>

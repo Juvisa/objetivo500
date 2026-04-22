@@ -43,10 +43,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   STATE.profile = await requireAuth('student');
   if (!STATE.profile) return; // requireAuth ya redirigió
 
+  // Verificar si el usuario ya eligió su guardián
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const guardianExiste = await Guardian.get(user.id);
+    if (!guardianExiste) {
+      window.location.href = './guardian-selector.html';
+      return;
+    }
+    STATE.guardianUserId = user.id;
+  }
+
   await loadStudentData();
   renderHeader();
   renderDashboard();
   setupRealtime();
+
+  // Iniciar widget del guardián en el dashboard
+  if (STATE.guardianUserId) {
+    GuardianWidget.init(STATE.guardianUserId, 'guardian-widget-container');
+  }
 
   // Si hay una sesión pendiente en localStorage, ofrecer reanudar
   const saved = loadSavedSession();
@@ -160,6 +176,9 @@ function renderDashboard() {
   if (!root) return;
 
   root.innerHTML = `
+    <!-- Guardián del Saber -->
+    <section id="guardian-widget-container" style="margin-bottom:var(--space-4)"></section>
+
     <!-- Hero con puntaje estimado -->
     <section class="panel" style="text-align:center;padding:var(--space-10) var(--space-6);">
       <p style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:var(--space-2)">
@@ -230,6 +249,11 @@ function renderDashboard() {
   loadAreaPerformance();
   loadLeaderboard();
   loadFeed();
+
+  // Re-iniciar widget del guardián (el container ya existe en el innerHTML)
+  if (STATE.guardianUserId && window.GuardianWidget) {
+    GuardianWidget.init(STATE.guardianUserId, 'guardian-widget-container');
+  }
 }
 
 function renderModeCards() {
@@ -728,6 +752,17 @@ window.navigateQuestion = function(direction) {
   renderQuestion();
 };
 
+// ── Calcula la máxima racha de respuestas correctas consecutivas ──
+function computeRachaConsecutiva() {
+  const { questions, answers } = STATE.session;
+  let max = 0, cur = 0;
+  for (const q of questions) {
+    if (answers[q.id]?.is_correct) { cur++; max = Math.max(max, cur); }
+    else cur = 0;
+  }
+  return max;
+}
+
 // ══════════════════════════════════════════════════════════════
 //  FIN DE SESIÓN
 // ══════════════════════════════════════════════════════════════
@@ -740,6 +775,20 @@ async function endSession() {
   const correct   = Object.values(answers).filter(a => a.is_correct).length;
   const pct       = Math.round((correct / total) * 100);
   const isPerfect = correct === total;
+
+  // Alimentar al guardián con los resultados de la sesión
+  if (STATE.guardianUserId && window.Guardian) {
+    try {
+      const racha   = computeRachaConsecutiva();
+      const result  = await Guardian.alimentar(STATE.guardianUserId, {
+        correctas:        correct,
+        rachaConsecutiva: racha,
+      });
+      if (result?.nivelSubio) {
+        Guardian.mostrarEvolucion(result.guardian, result.nivelAntes, result.nivelAhora);
+      }
+    } catch (e) { console.error('[Guardian] alimentar:', e); }
+  }
 
   if (isPerfect && total >= 5) {
     showLevelUpModal('✨', '¡Sesión perfecta!', `${correct}/${total} — Sin errores. Eres increíble.`);

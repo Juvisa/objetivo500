@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="aura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.45"/>
+      <stop offset="70%" stop-color="#fbbf24" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="eagleGrad" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#fffbeb"/>
+      <stop offset="100%" stop-color="#451a03"/>
+    </radialGradient>
+    <radialGradient id="lionGrad" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#fde68a"/>
+      <stop offset="100%" stop-color="#78350f"/>
+    </radialGradient>
+    <filter id="goldGlow">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- divine aura -->
+  <circle cx="100" cy="100" r="96" fill="none" stroke="#fbbf24" stroke-width="1" opacity="0.2"/>
+  <circle cx="100" cy="100" r="88" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.3"/>
+  <ellipse cx="100" cy="105" rx="80" ry="82" fill="url(#aura)"/>
+  <!-- lightning aura lines -->
+  <path d="M18,58 L24,70 L18,74 L28,84" fill="none" stroke="#fde047" stroke-width="2" opacity="0.5"/>
+  <path d="M178,62 L172,72 L180,76 L170,88" fill="none" stroke="#fde047" stroke-width="2" opacity="0.5"/>
+  <!-- lion tail with lightning tip -->
+  <path d="M132,150 Q166,138 176,108 Q162,106 158,122 Q160,100 148,108" fill="none" stroke="#b45309" stroke-width="10" stroke-linecap="round"/>
+  <path d="M176,106 L184,94 L176,100 L186,88" fill="none" stroke="#fde047" stroke-width="3" stroke-linecap="round" filter="url(#goldGlow)"/>
+  <!-- hind legs armored -->
+  <path d="M74,156 Q66,174 56,182 Q70,178 76,186 Q88,178 82,158 Z" fill="#92400e"/>
+  <path d="M116,156 Q122,174 128,182 Q116,178 110,186 Q100,178 108,158 Z" fill="#92400e"/>
+  <!-- golden paw markings -->
+  <path d="M58,180 L52,188" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M66,184 L64,192" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M76,186 L78,194" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- lion body lower -->
+  <ellipse cx="100" cy="140" rx="42" ry="34" fill="url(#lionGrad)"/>
+  <!-- eagle upper body -->
+  <ellipse cx="100" cy="108" rx="40" ry="38" fill="#78350f"/>
+  <!-- sacred chest feathers -->
+  <ellipse cx="100" cy="114" rx="24" ry="26" fill="#fffbeb" opacity="0.9"/>
+  <path d="M82,104 Q100,94 118,104 Q116,116 100,122 Q84,116 82,104 Z" fill="#fde68a" opacity="0.7"/>
+  <!-- sacred rune on chest -->
+  <circle cx="100" cy="114" r="8" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.5"/>
+  <text x="96" y="118" font-size="10" fill="#fbbf24" opacity="0.7">✦</text>
+  <!-- front eagle talons -->
+  <path d="M60,118 Q36,106 24,122 Q36,124 38,140 Q50,130 56,142 Z" fill="#451a03"/>
+  <path d="M140,118 Q164,106 176,122 Q164,124 162,140 Q150,130 144,142 Z" fill="#451a03"/>
+  <!-- golden talon tips -->
+  <path d="M26,122 L16,114" stroke="#fbbf24" stroke-width="3" stroke-linecap="round" filter="url(#goldGlow)"/>
+  <path d="M30,132 L20,128" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" filter="url(#goldGlow)"/>
+  <path d="M36,140 L30,148" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" filter="url(#goldGlow)"/>
+  <path d="M174,122 L184,114" stroke="#fbbf24" stroke-width="3" stroke-linecap="round" filter="url(#goldGlow)"/>
+  <path d="M170,132 L180,128" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" filter="url(#goldGlow)"/>
+  <path d="M164,140 L170,148" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" filter="url(#goldGlow)"/>
+  <!-- MASSIVE EAGLE WINGS -->
+  <path d="M60,84 Q10,34 8,88 Q26,68 34,90 Q10,108 12,142 Q32,120 48,136 Q28,162 40,180 Q58,156 58,170 Q64,148 58,162 Z" fill="#451a03"/>
+  <path d="M140,84 Q190,34 192,88 Q174,68 166,90 Q190,108 188,142 Q168,120 152,136 Q172,162 160,180 Q142,156 142,170 Q136,148 142,162 Z" fill="#451a03"/>
+  <!-- divine wing feathers with gold -->
+  <path d="M14,90 Q30,74 44,90" fill="none" stroke="#fbbf24" stroke-width="2.5" opacity="0.8"/>
+  <path d="M12,108 Q28,94 44,108" fill="none" stroke="#fbbf24" stroke-width="2" opacity="0.7"/>
+  <path d="M12,126 Q28,114 44,124" fill="none" stroke="#fbbf24" stroke-width="2" opacity="0.6"/>
+  <path d="M14,144 Q28,134 44,142" fill="none" stroke="#d97706" stroke-width="1.5" opacity="0.6"/>
+  <path d="M186,90 Q170,74 156,90" fill="none" stroke="#fbbf24" stroke-width="2.5" opacity="0.8"/>
+  <path d="M188,108 Q172,94 156,108" fill="none" stroke="#fbbf24" stroke-width="2" opacity="0.7"/>
+  <path d="M188,126 Q172,114 156,124" fill="none" stroke="#fbbf24" stroke-width="2" opacity="0.6"/>
+  <path d="M186,144 Q172,134 156,142" fill="none" stroke="#d97706" stroke-width="1.5" opacity="0.6"/>
+  <!-- neck -->
+  <rect x="84" y="68" width="32" height="40" rx="16" fill="#78350f"/>
+  <!-- divine eagle head -->
+  <circle cx="100" cy="56" r="32" fill="url(#eagleGrad)"/>
+  <!-- sacred face mask -->
+  <ellipse cx="100" cy="62" rx="22" ry="20" fill="#fffbeb"/>
+  <!-- divine beak gold -->
+  <path d="M88,72 L118,64 L104,90 Z" fill="#fbbf24" filter="url(#goldGlow)"/>
+  <!-- rune crown -->
+  <path d="M76,40 Q82,22 90,34 Q96,18 100,30 Q104,16 110,30 Q118,20 126,40" fill="none" stroke="#fbbf24" stroke-width="3" stroke-linecap="round" filter="url(#goldGlow)"/>
+  <!-- crown feather tufts -->
+  <path d="M78,40 Q72,22 80,32 Z" fill="#451a03"/>
+  <path d="M100,34 Q96,18 104,26 Z" fill="#451a03"/>
+  <path d="M122,40 Q128,22 120,32 Z" fill="#451a03"/>
+  <!-- divine eyes glow gold -->
+  <ellipse cx="85" cy="54" rx="10" ry="8" fill="#0c0a09" transform="rotate(-10,85,54)"/>
+  <ellipse cx="115" cy="54" rx="10" ry="8" fill="#0c0a09" transform="rotate(10,115,54)"/>
+  <circle cx="87" cy="52" r="5" fill="#fbbf24" filter="url(#goldGlow)"/>
+  <circle cx="117" cy="52" r="5" fill="#fbbf24" filter="url(#goldGlow)"/>
+  <circle cx="88" cy="53" r="2.5" fill="white"/>
+  <circle cx="118" cy="53" r="2.5" fill="white"/>
+  <!-- third eye -->
+  <ellipse cx="100" cy="46" rx="5" ry="4" fill="#fbbf24" filter="url(#goldGlow)" opacity="0.9"/>
+  <!-- lightning bolts -->
+  <path d="M142,36 L136,52 L144,52 L136,68" fill="none" stroke="#fde047" stroke-width="3" stroke-linecap="round" filter="url(#goldGlow)"/>
+  <!-- divine stars -->
+  <text x="2" y="46" font-size="14" fill="#fbbf24" opacity="0.8">★</text>
+  <text x="182" y="48" font-size="12" fill="#fbbf24" opacity="0.8">★</text>
+  <text x="4" y="178" font-size="12" fill="#d97706" opacity="0.7">★</text>
+  <text x="180" y="176" font-size="10" fill="#fbbf24" opacity="0.8">★</text>
+</svg>

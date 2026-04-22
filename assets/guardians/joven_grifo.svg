@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="eagleHead" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#fef3c7"/>
+      <stop offset="100%" stop-color="#92400e"/>
+    </radialGradient>
+    <radialGradient id="lionBody" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#fde68a"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </radialGradient>
+  </defs>
+  <!-- lion tail -->
+  <path d="M134,148 Q162,138 168,115 Q158,114 154,124 Q152,110 142,115" fill="none" stroke="#d97706" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="168" cy="115" r="8" fill="#d97706"/>
+  <!-- hind legs -->
+  <rect x="82" y="152" width="11" height="26" rx="5" fill="#b45309"/>
+  <rect x="107" y="152" width="11" height="26" rx="5" fill="#b45309"/>
+  <ellipse cx="88" cy="178" rx="9" ry="5" fill="#92400e"/>
+  <ellipse cx="113" cy="178" rx="9" ry="5" fill="#92400e"/>
+  <!-- lion body -->
+  <ellipse cx="100" cy="138" rx="36" ry="32" fill="url(#lionBody)"/>
+  <!-- chest feathers -->
+  <ellipse cx="100" cy="128" rx="20" ry="20" fill="#fef3c7" opacity="0.9"/>
+  <!-- eagle wings -->
+  <path d="M64,100 Q28,72 30,110 Q42,100 52,112 Q38,126 42,142 Q54,130 64,138 Z" fill="#92400e"/>
+  <path d="M136,100 Q172,72 170,110 Q158,100 148,112 Q162,126 158,142 Q146,130 136,138 Z" fill="#92400e"/>
+  <!-- wing feathers -->
+  <path d="M32,112 L46,106" stroke="#d97706" stroke-width="1.5"/>
+  <path d="M34,122 L48,118" stroke="#d97706" stroke-width="1.5"/>
+  <path d="M36,132 L50,130" stroke="#d97706" stroke-width="1.5"/>
+  <path d="M168,112 L154,106" stroke="#d97706" stroke-width="1.5"/>
+  <path d="M166,122 L152,118" stroke="#d97706" stroke-width="1.5"/>
+  <path d="M164,132 L150,130" stroke="#d97706" stroke-width="1.5"/>
+  <!-- front talons/legs -->
+  <rect x="80" y="140" width="10" height="18" rx="5" fill="#b45309"/>
+  <rect x="110" y="140" width="10" height="18" rx="5" fill="#b45309"/>
+  <!-- eagle head -->
+  <circle cx="100" cy="74" r="28" fill="url(#eagleHead)"/>
+  <!-- white face mask -->
+  <ellipse cx="100" cy="78" rx="18" ry="16" fill="#fffbeb"/>
+  <!-- beak -->
+  <path d="M93,86 L108,82 L100,96 Z" fill="#f59e0b"/>
+  <!-- eyes sharp -->
+  <circle cx="87" cy="70" r="8" fill="#0c0a09"/>
+  <circle cx="113" cy="70" r="8" fill="#0c0a09"/>
+  <circle cx="89" cy="68" r="3" fill="#fbbf24"/>
+  <circle cx="115" cy="68" r="3" fill="#fbbf24"/>
+  <circle cx="90" cy="69" r="1.5" fill="white"/>
+  <circle cx="116" cy="69" r="1.5" fill="white"/>
+  <!-- ear tufts -->
+  <path d="M82,56 Q74,42 84,52 Z" fill="#78350f"/>
+  <path d="M118,56 Q126,42 116,52 Z" fill="#78350f"/>
+  <!-- crown hint -->
+  <path d="M85,50 Q100,42 115,50" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+</svg>

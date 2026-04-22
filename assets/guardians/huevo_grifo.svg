@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fde68a" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="egg" cx="38%" cy="32%" r="62%">
+      <stop offset="0%" stop-color="#fef3c7"/>
+      <stop offset="55%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#78350f"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="100" cy="115" rx="58" ry="74" fill="url(#glow)"/>
+  <ellipse cx="100" cy="108" rx="46" ry="62" fill="url(#egg)" stroke="#d97706" stroke-width="2"/>
+  <!-- feather texture lines -->
+  <path d="M80,90 Q100,80 118,92" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.7"/>
+  <path d="M78,104 Q100,95 122,106" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.6"/>
+  <path d="M82,118 Q100,110 118,120" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.5"/>
+  <!-- crack -->
+  <polyline points="98,68 103,78 97,88 108,100" fill="none" stroke="#92400e" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="85" cy="85" r="3" fill="#fffbeb" opacity="0.8"/>
+  <circle cx="115" cy="105" r="2.5" fill="#fef3c7" opacity="0.7"/>
+</svg>

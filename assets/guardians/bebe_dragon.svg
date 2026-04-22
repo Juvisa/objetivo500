@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="bodyGrad" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#fca5a5"/>
+      <stop offset="100%" stop-color="#dc2626"/>
+    </radialGradient>
+  </defs>
+  <!-- broken egg bottom -->
+  <ellipse cx="100" cy="160" rx="42" ry="18" fill="#b91c1c" opacity="0.5"/>
+  <path d="M58,155 Q65,140 80,148 Q90,135 100,145 Q112,133 122,147 Q136,138 142,155 Z" fill="#7f1d1d" opacity="0.7"/>
+  <!-- body -->
+  <ellipse cx="100" cy="125" rx="32" ry="38" fill="url(#bodyGrad)"/>
+  <!-- belly -->
+  <ellipse cx="100" cy="132" rx="18" ry="22" fill="#fecaca" opacity="0.8"/>
+  <!-- head -->
+  <circle cx="100" cy="88" r="28" fill="#ef4444"/>
+  <!-- snout -->
+  <ellipse cx="100" cy="100" rx="12" ry="8" fill="#fca5a5"/>
+  <!-- nostrils -->
+  <circle cx="96" cy="99" r="2" fill="#b91c1c"/>
+  <circle cx="104" cy="99" r="2" fill="#b91c1c"/>
+  <!-- eyes -->
+  <circle cx="88" cy="84" r="7" fill="#1c1917"/>
+  <circle cx="112" cy="84" r="7" fill="#1c1917"/>
+  <circle cx="90" cy="82" r="3" fill="#fbbf24"/>
+  <circle cx="114" cy="82" r="3" fill="#fbbf24"/>
+  <circle cx="91" cy="83" r="1.5" fill="white"/>
+  <circle cx="115" cy="83" r="1.5" fill="white"/>
+  <!-- small horns -->
+  <polygon points="86,68 80,52 92,62" fill="#dc2626"/>
+  <polygon points="114,68 122,52 108,62" fill="#dc2626"/>
+  <!-- tiny wings -->
+  <path d="M68,118 Q50,100 55,130 Q62,125 68,130 Z" fill="#ef4444" opacity="0.8"/>
+  <path d="M132,118 Q150,100 145,130 Q138,125 132,130 Z" fill="#ef4444" opacity="0.8"/>
+  <!-- flame breath tiny -->
+  <path d="M100,108 Q108,118 115,112 Q110,125 100,120 Z" fill="#fbbf24" opacity="0.6"/>
+</svg>

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="bodyGrad" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#fde68a"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </radialGradient>
+  </defs>
+  <!-- flame base -->
+  <path d="M80,170 Q90,148 100,158 Q110,148 120,170 Z" fill="#fbbf24" opacity="0.5"/>
+  <!-- broken egg bottom -->
+  <path d="M60,162 Q72,145 88,154 Q98,140 112,154 Q126,144 140,162 Z" fill="#7c2d12" opacity="0.7"/>
+  <ellipse cx="100" cy="167" rx="42" ry="14" fill="#7c2d12" opacity="0.5"/>
+  <!-- small body -->
+  <ellipse cx="100" cy="133" rx="26" ry="30" fill="url(#bodyGrad)"/>
+  <!-- wing feathers left -->
+  <path d="M74,120 Q48,100 46,130 Q56,122 62,132 Q58,142 64,148 Z" fill="#f97316" opacity="0.9"/>
+  <path d="M62,132 Q50,128 48,140" fill="none" stroke="#fbbf24" stroke-width="1.5"/>
+  <!-- wing feathers right -->
+  <path d="M126,120 Q152,100 154,130 Q144,122 138,132 Q142,142 136,148 Z" fill="#f97316" opacity="0.9"/>
+  <path d="M138,132 Q150,128 152,140" fill="none" stroke="#fbbf24" stroke-width="1.5"/>
+  <!-- belly -->
+  <ellipse cx="100" cy="138" rx="14" ry="17" fill="#fef9c3" opacity="0.9"/>
+  <!-- head (chick) -->
+  <circle cx="100" cy="96" r="26" fill="#fb923c"/>
+  <!-- flame crest on head -->
+  <path d="M88,72 Q92,58 100,65 Q108,52 112,70 Q104,60 100,68 Q96,58 88,72 Z" fill="#fde047"/>
+  <path d="M95,70 Q98,56 100,62 Q102,55 105,68" fill="#f97316" opacity="0.7"/>
+  <!-- beak -->
+  <path d="M94,104 L108,100 L100,112 Z" fill="#fbbf24"/>
+  <!-- eyes -->
+  <circle cx="88" cy="92" r="7" fill="#1c1917"/>
+  <circle cx="112" cy="92" r="7" fill="#1c1917"/>
+  <circle cx="90" cy="90" r="3" fill="#fbbf24"/>
+  <circle cx="114" cy="90" r="3" fill="#fbbf24"/>
+  <circle cx="91" cy="91" r="1.5" fill="white"/>
+  <circle cx="115" cy="91" r="1.5" fill="white"/>
+</svg>

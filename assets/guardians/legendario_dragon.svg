@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="bodyGrad" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#fca5a5"/>
+      <stop offset="70%" stop-color="#dc2626"/>
+      <stop offset="100%" stop-color="#450a0a"/>
+    </radialGradient>
+    <radialGradient id="aura1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ef4444" stop-opacity="0.5"/>
+      <stop offset="70%" stop-color="#ef4444" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="goldGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- outer aura rings -->
+  <circle cx="100" cy="100" r="96" fill="none" stroke="#ef4444" stroke-width="1" opacity="0.2"/>
+  <circle cx="100" cy="100" r="88" fill="none" stroke="#ef4444" stroke-width="1.5" opacity="0.25"/>
+  <ellipse cx="100" cy="105" rx="80" ry="82" fill="url(#aura1)"/>
+  <!-- gold aura inner -->
+  <ellipse cx="100" cy="100" rx="55" ry="58" fill="url(#goldGlow)"/>
+  <!-- tail -->
+  <path d="M130,148 Q168,136 178,106 Q164,104 160,118 Q162,98 148,106" fill="none" stroke="#dc2626" stroke-width="10" stroke-linecap="round"/>
+  <!-- tail tip flame -->
+  <path d="M178,104 Q186,90 192,98 Q184,108 178,118 Q182,106 178,104 Z" fill="#fbbf24" filter="url(#glow)"/>
+  <!-- gold rune markings on body -->
+  <!-- legs armored -->
+  <path d="M76,156 Q68,172 60,180 Q72,176 78,184 Q88,176 82,160 Z" fill="#b91c1c"/>
+  <path d="M116,156 Q122,172 128,180 Q118,176 112,184 Q102,176 108,160 Z" fill="#b91c1c"/>
+  <!-- armor on legs -->
+  <path d="M64,176 L56,186" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M70,180 L66,190" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M78,182 L80,192" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M126,176 L134,186" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M120,180 L122,190" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M112,182 L110,192" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- body main -->
+  <ellipse cx="100" cy="120" rx="44" ry="46" fill="url(#bodyGrad)"/>
+  <!-- gold armor plates on belly -->
+  <ellipse cx="100" cy="130" rx="26" ry="32" fill="#7f1d1d" opacity="0.4"/>
+  <path d="M78,114 Q100,105 122,114 Q120,126 100,132 Q80,126 78,114 Z" fill="#fbbf24" opacity="0.2"/>
+  <path d="M80,128 Q100,120 120,128 Q118,140 100,146 Q82,140 80,128 Z" fill="#fbbf24" opacity="0.15"/>
+  <!-- arms with armor -->
+  <path d="M56,118 Q36,108 26,124 Q38,126 40,140 Q52,130 56,142 Z" fill="#b91c1c"/>
+  <path d="M144,118 Q164,108 174,124 Q162,126 160,140 Q148,130 144,142 Z" fill="#b91c1c"/>
+  <!-- arm runes -->
+  <path d="M30,124 L22,116" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M34,134 L26,130" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M170,124 L178,116" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M166,134 L174,130" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- MASSIVE WINGS -->
+  <path d="M56,82 Q4,28 4,84 Q22,64 30,86 Q6,104 8,140 Q28,116 46,132 Q26,160 38,178 Q56,152 56,166 Q60,144 56,158 Z" fill="#dc2626"/>
+  <path d="M144,82 Q196,28 196,84 Q178,64 170,86 Q194,104 192,140 Q172,116 154,132 Q174,160 162,178 Q144,152 144,166 Q140,144 144,158 Z" fill="#dc2626"/>
+  <!-- wing gold veins -->
+  <path d="M10,86 Q26,70 40,86" fill="none" stroke="#fbbf24" stroke-width="2" opacity="0.7"/>
+  <path d="M10,104 Q26,90 40,104" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.6"/>
+  <path d="M10,122 Q26,110 40,120" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.5"/>
+  <path d="M12,140 Q26,130 42,138" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.4"/>
+  <path d="M190,86 Q174,70 160,86" fill="none" stroke="#fbbf24" stroke-width="2" opacity="0.7"/>
+  <path d="M190,104 Q174,90 160,104" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.6"/>
+  <path d="M190,122 Q174,110 160,120" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.5"/>
+  <path d="M188,140 Q174,130 158,138" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.4"/>
+  <!-- neck armored -->
+  <rect x="84" y="66" width="32" height="42" rx="16" fill="#dc2626"/>
+  <!-- neck spikes golden -->
+  <polygon points="86,70 78,52 92,66" fill="#fbbf24"/>
+  <polygon points="100,66 96,48 104,62" fill="#fbbf24"/>
+  <polygon points="114,70 122,52 108,66" fill="#fbbf24"/>
+  <!-- head LARGE and armored -->
+  <ellipse cx="100" cy="52" rx="38" ry="30" fill="#ef4444"/>
+  <!-- head armor plating -->
+  <path d="M68,44 Q100,36 132,44 Q128,52 100,56 Q72,52 68,44 Z" fill="#b91c1c" opacity="0.5"/>
+  <!-- massive horns -->
+  <polygon points="80,34 66,6 88,28" fill="#fbbf24" filter="url(#glow)"/>
+  <polygon points="120,34 134,6 112,28" fill="#fbbf24" filter="url(#glow)"/>
+  <polygon points="86,30 80,14 92,26" fill="#dc2626"/>
+  <polygon points="114,30 120,14 108,26" fill="#dc2626"/>
+  <!-- third eye rune -->
+  <ellipse cx="100" cy="42" rx="5" ry="4" fill="#fbbf24" opacity="0.8" filter="url(#glow)"/>
+  <!-- snout -->
+  <ellipse cx="100" cy="64" rx="20" ry="13" fill="#fca5a5"/>
+  <circle cx="91" cy="62" r="3.5" fill="#450a0a"/>
+  <circle cx="109" cy="62" r="3.5" fill="#450a0a"/>
+  <!-- eyes POWERFUL -->
+  <ellipse cx="83" cy="47" rx="11" ry="9" fill="#0c0a09" transform="rotate(-15,83,47)"/>
+  <ellipse cx="117" cy="47" rx="11" ry="9" fill="#0c0a09" transform="rotate(15,117,47)"/>
+  <circle cx="85" cy="45" r="5" fill="#fbbf24" filter="url(#glow)"/>
+  <circle cx="119" cy="45" r="5" fill="#fbbf24" filter="url(#glow)"/>
+  <circle cx="86" cy="46" r="2.5" fill="white"/>
+  <circle cx="120" cy="46" r="2.5" fill="white"/>
+  <!-- LEGENDARY fire breath -->
+  <path d="M114,65 Q132,48 154,56 Q148,68 136,72 Q148,72 155,80 Q140,82 128,76 Q120,88 112,78 Z" fill="#fbbf24" opacity="0.95" filter="url(#glow)"/>
+  <path d="M122,60 Q140,44 160,52" fill="none" stroke="#fde047" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+  <!-- stars around -->
+  <text x="4" y="56" font-size="12" fill="#fbbf24" opacity="0.8">★</text>
+  <text x="180" y="58" font-size="10" fill="#fbbf24" opacity="0.7">★</text>
+  <text x="8" y="172" font-size="11" fill="#ef4444" opacity="0.7">★</text>
+  <text x="178" y="170" font-size="9" fill="#fbbf24" opacity="0.8">★</text>
+</svg>

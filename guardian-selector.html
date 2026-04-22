@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elige tu Guardián — Objetivo 500</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .gs-hero {
+      text-align: center;
+      padding: var(--space-10) var(--space-4) var(--space-6);
+    }
+    .gs-hero h1 {
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      font-weight: 800;
+      background: linear-gradient(135deg, #c084fc, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: var(--space-2);
+    }
+    .gs-hero p {
+      color: var(--text-secondary);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* Grid 2×2 de cartas */
+    .gs-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-4);
+      max-width: 680px;
+      margin: 0 auto var(--space-8);
+      padding: 0 var(--space-4);
+    }
+    @media (max-width: 480px) {
+      .gs-grid { grid-template-columns: 1fr; }
+    }
+
+    .gs-card {
+      position: relative;
+      background: var(--bg-elevated);
+      border: 2px solid var(--border-light);
+      border-radius: 16px;
+      padding: var(--space-5);
+      cursor: pointer;
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+      text-align: center;
+      user-select: none;
+    }
+    .gs-card:hover {
+      transform: scale(1.04);
+      border-color: var(--card-acento);
+      box-shadow: 0 0 20px -4px var(--card-acento);
+    }
+    .gs-card:focus-visible {
+      outline: 3px solid var(--card-acento);
+      outline-offset: 3px;
+    }
+    .gs-card--selected {
+      border-color: var(--card-acento) !important;
+      box-shadow: 0 0 28px -2px var(--card-acento) !important;
+    }
+    .gs-card--selected::after {
+      content: '✓';
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--card-acento);
+    }
+
+    .gs-card__img-wrap {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto var(--space-3);
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--card-acento) 12%, transparent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .gs-card__img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      transition: transform .3s ease;
+    }
+    .gs-card:hover .gs-card__img { transform: scale(1.1); }
+
+    .gs-card__nombre {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text-primary);
+      margin-bottom: var(--space-1);
+    }
+    .gs-card__elemento {
+      font-size: .75rem;
+      font-weight: 600;
+      color: var(--card-acento);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: var(--space-2);
+    }
+    .gs-card__desc {
+      font-size: .82rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .gs-footer {
+      text-align: center;
+      padding: 0 var(--space-4) var(--space-10);
+    }
+    .gs-btn-confirmar {
+      min-width: 240px;
+      font-size: 1rem;
+      padding: var(--space-3) var(--space-8);
+      border-radius: 12px;
+      transition: opacity .2s, transform .1s;
+    }
+    .gs-btn-confirmar:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    .gs-btn-confirmar:not(:disabled):hover { transform: translateY(-2px); }
+
+    /* Animación de entrada de cartas */
+    @keyframes cardSlideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .gs-card:nth-child(1) { animation: cardSlideIn .35s .05s both; }
+    .gs-card:nth-child(2) { animation: cardSlideIn .35s .12s both; }
+    .gs-card:nth-child(3) { animation: cardSlideIn .35s .19s both; }
+    .gs-card:nth-child(4) { animation: cardSlideIn .35s .26s both; }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar__logo">
+      <div class="logo-icon" aria-hidden="true">🎯</div>
+      Objetivo 500
+    </div>
+  </nav>
+
+  <main style="max-width:760px;margin:0 auto">
+
+    <div class="gs-hero">
+      <h1>Elige tu Guardián del Saber</h1>
+      <p>Tu guardián te acompaña en cada sesión de estudio. ¡Aliméntalo respondiendo preguntas y hazlo evolucionar!</p>
+    </div>
+
+    <div class="gs-grid" id="gs-grid" role="list" aria-label="Guardianes disponibles">
+      <!-- Cards inyectadas por JS -->
+    </div>
+
+    <div class="gs-footer">
+      <p id="gs-hint" style="color:var(--text-muted);font-size:.85rem;margin-bottom:var(--space-4)">
+        Selecciona un guardián para continuar
+      </p>
+      <button
+        id="gs-btn"
+        class="btn btn--primary gs-btn-confirmar"
+        disabled
+        aria-disabled="true"
+      >
+        Elegir Guardián
+      </button>
+    </div>
+
+  </main>
+
+  <div id="toast-container" class="toast-container" aria-live="assertive" aria-atomic="false"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    var SUPABASE_URL      = 'https://bekvduhzoxufixykxphy.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJla3ZkdWh6b3h1Zml4eWt4cGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NzIwNjksImV4cCI6MjA5MjM0ODA2OX0.S_fSyBAJ1IS9E3H_W7I8vXwEhRqnczNAHa1S7kvKxvM';
+    var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true },
+    });
+
+    function showToast(title, msg, icon, type) {
+      const c = document.getElementById('toast-container');
+      if (!c) return;
+      const t = document.createElement('div');
+      t.className = `toast toast--${type ?? 'info'}`;
+      t.setAttribute('role', 'alert');
+      t.innerHTML = `<span class="toast__icon" aria-hidden="true">${icon ?? 'ℹ️'}</span><div><strong>${title}</strong>${msg ? `<p>${msg}</p>` : ''}</div>`;
+      c.appendChild(t);
+      setTimeout(() => t.remove(), 4500);
+    }
+  </script>
+  <script src="guardian.js"></script>
+  <script>
+    'use strict';
+
+    const GUARDIANES_LIST = [
+      { id: 'dragon',   imagen: './assets/guardians/huevo_dragon.svg',   fallback: '🔥' },
+      { id: 'grifo',    imagen: './assets/guardians/huevo_grifo.svg',    fallback: '🦅' },
+      { id: 'unicornio',imagen: './assets/guardians/huevo_unicornio.svg',fallback: '🦄' },
+      { id: 'fenix',    imagen: './assets/guardians/huevo_fenix.svg',    fallback: '✨' },
+    ];
+
+    let seleccionado = null;
+
+    // ── Verificar autenticación ───────────────────────────────────
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = './login.html'; return; }
+
+      // Si ya tiene guardián, redirigir al app
+      const userId = session.user.id;
+      const { data: existing } = await supabase
+        .from('estado_guardian')
+        .select('id')
+        .eq('id_usuario', userId)
+        .maybeSingle();
+
+      if (existing) { window.location.href = './app.html'; return; }
+
+      renderCards();
+    }
+
+    // ── Renderizar las 4 cartas ───────────────────────────────────
+    function renderCards() {
+      const grid = document.getElementById('gs-grid');
+      grid.innerHTML = GUARDIANES_LIST.map(({ id, imagen, fallback }) => {
+        const cfg = Guardian.getConfig(id);
+        return `
+          <div
+            class="gs-card"
+            style="--card-acento:${cfg.colorAcento}"
+            role="listitem"
+            tabindex="0"
+            aria-label="${cfg.nombre}: ${cfg.descripcion}"
+            onclick="seleccionar('${id}')"
+            onkeydown="if(event.key==='Enter'||event.key===' ')seleccionar('${id}')"
+            id="card-${id}"
+          >
+            <div class="gs-card__img-wrap">
+              <img
+                src="${imagen}"
+                alt="Huevo de ${cfg.nombre}"
+                class="gs-card__img"
+                onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${fallback}',style:'font-size:3rem'}))"
+              />
+            </div>
+            <p class="gs-card__nombre">${cfg.nombre}</p>
+            <p class="gs-card__elemento">${cfg.elemento}</p>
+            <p class="gs-card__desc">${cfg.descripcion}</p>
+          </div>`;
+      }).join('');
+    }
+
+    // ── Seleccionar un guardián ───────────────────────────────────
+    function seleccionar(id) {
+      seleccionado = id;
+
+      // Actualizar clases visuales
+      GUARDIANES_LIST.forEach(({ id: cid }) => {
+        const card = document.getElementById(`card-${cid}`);
+        if (!card) return;
+        card.classList.toggle('gs-card--selected', cid === id);
+        card.setAttribute('aria-pressed', cid === id ? 'true' : 'false');
+      });
+
+      // Activar botón
+      const btn = document.getElementById('gs-btn');
+      const cfg = Guardian.getConfig(id);
+      btn.disabled = false;
+      btn.setAttribute('aria-disabled', 'false');
+      btn.textContent = `Elegir a ${cfg.nombre}`;
+      btn.style.background   = cfg.colorAcento;
+      btn.style.borderColor  = cfg.colorAcento;
+      btn.style.color        = '#000';
+
+      document.getElementById('gs-hint').textContent = cfg.descripcion;
+    }
+
+    // ── Confirmar elección ────────────────────────────────────────
+    document.getElementById('gs-btn').addEventListener('click', async () => {
+      if (!seleccionado) return;
+
+      const btn = document.getElementById('gs-btn');
+      btn.disabled = true;
+      btn.textContent = 'Creando tu guardián…';
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = './login.html'; return; }
+
+      const resultado = await Guardian.crear(session.user.id, seleccionado);
+
+      if (!resultado) {
+        showToast('Error', 'No se pudo crear el guardián. Intenta de nuevo.', '❌', 'error');
+        btn.disabled = false;
+        btn.textContent = `Elegir a ${Guardian.getConfig(seleccionado).nombre}`;
+        return;
+      }
+
+      showToast('¡Guardián elegido!', `${Guardian.getConfig(seleccionado).nombre} te acompañará en tu camino al 500.`, '🎉', 'success');
+      setTimeout(() => { window.location.href = './app.html'; }, 1200);
+    });
+
+    init();
+  </script>
+</body>
+</html>

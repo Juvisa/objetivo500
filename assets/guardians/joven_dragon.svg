@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="bodyGrad" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#fca5a5"/>
+      <stop offset="100%" stop-color="#b91c1c"/>
+    </radialGradient>
+  </defs>
+  <!-- tail -->
+  <path d="M130,145 Q160,140 165,120 Q155,118 150,128 Q148,115 138,118" fill="none" stroke="#dc2626" stroke-width="8" stroke-linecap="round"/>
+  <polygon points="165,118 172,108 160,115" fill="#ef4444"/>
+  <!-- legs -->
+  <rect x="80" y="150" width="12" height="28" rx="6" fill="#dc2626"/>
+  <rect x="108" y="150" width="12" height="28" rx="6" fill="#dc2626"/>
+  <ellipse cx="86" cy="178" rx="10" ry="5" fill="#b91c1c"/>
+  <ellipse cx="114" cy="178" rx="10" ry="5" fill="#b91c1c"/>
+  <!-- claws -->
+  <path d="M78,180 L72,188" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M84,182 L82,190" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M90,180 L94,188" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M106,180 L100,188" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M112,182 L112,190" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M118,180 L122,188" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- body -->
+  <ellipse cx="100" cy="130" rx="38" ry="42" fill="url(#bodyGrad)"/>
+  <!-- belly scales -->
+  <ellipse cx="100" cy="138" rx="22" ry="28" fill="#fecaca" opacity="0.7"/>
+  <!-- wings -->
+  <path d="M62,105 Q28,72 32,108 Q42,98 52,110 Q40,122 44,138 Q54,128 62,135 Z" fill="#ef4444"/>
+  <path d="M138,105 Q172,72 168,108 Q158,98 148,110 Q160,122 156,138 Q146,128 138,135 Z" fill="#ef4444"/>
+  <!-- wing membrane lines -->
+  <path d="M34,110 Q42,100 50,108" fill="none" stroke="#b91c1c" stroke-width="1.5"/>
+  <path d="M36,122 Q46,114 54,122" fill="none" stroke="#b91c1c" stroke-width="1.5"/>
+  <path d="M166,110 Q158,100 150,108" fill="none" stroke="#b91c1c" stroke-width="1.5"/>
+  <path d="M164,122 Q154,114 146,122" fill="none" stroke="#b91c1c" stroke-width="1.5"/>
+  <!-- neck -->
+  <rect x="88" y="82" width="24" height="30" rx="12" fill="#dc2626"/>
+  <!-- head -->
+  <ellipse cx="100" cy="72" rx="30" ry="26" fill="#ef4444"/>
+  <!-- horns -->
+  <polygon points="84,54 76,36 90,48" fill="#b91c1c"/>
+  <polygon points="116,54 124,36 110,48" fill="#b91c1c"/>
+  <!-- spikes on back -->
+  <polygon points="96,90 92,76 98,84" fill="#b91c1c"/>
+  <polygon points="100,88 97,72 103,82" fill="#b91c1c"/>
+  <polygon points="104,90 108,76 102,84" fill="#b91c1c"/>
+  <!-- snout -->
+  <ellipse cx="100" cy="84" rx="14" ry="9" fill="#fca5a5"/>
+  <circle cx="95" cy="83" r="2.5" fill="#7f1d1d"/>
+  <circle cx="105" cy="83" r="2.5" fill="#7f1d1d"/>
+  <!-- eyes -->
+  <circle cx="87" cy="67" r="8" fill="#0c0a09"/>
+  <circle cx="113" cy="67" r="8" fill="#0c0a09"/>
+  <circle cx="89" cy="65" r="4" fill="#fbbf24"/>
+  <circle cx="115" cy="65" r="4" fill="#fbbf24"/>
+  <circle cx="90" cy="66" r="2" fill="white"/>
+  <circle cx="116" cy="66" r="2" fill="white"/>
+  <!-- flame breath -->
+  <path d="M114,88 Q126,82 134,88 Q128,98 118,96 Z" fill="#fbbf24" opacity="0.8"/>
+  <path d="M120,85 Q130,78 138,84" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"/>
+</svg>

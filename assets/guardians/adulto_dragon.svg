@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="bodyGrad" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#fca5a5"/>
+      <stop offset="100%" stop-color="#991b1b"/>
+    </radialGradient>
+    <radialGradient id="glowRed" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ef4444" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- outer glow -->
+  <ellipse cx="100" cy="110" rx="90" ry="90" fill="url(#glowRed)"/>
+  <!-- tail -->
+  <path d="M132,148 Q166,138 174,110 Q162,108 158,122 Q158,104 146,110" fill="none" stroke="#dc2626" stroke-width="9" stroke-linecap="round"/>
+  <polygon points="174,108 184,96 170,108" fill="#ef4444"/>
+  <!-- hind legs -->
+  <path d="M78,158 Q74,170 68,175 Q76,172 82,178 Q88,172 84,160 Z" fill="#dc2626"/>
+  <path d="M112,158 Q116,170 122,175 Q114,172 108,178 Q102,172 106,160 Z" fill="#dc2626"/>
+  <!-- claws -->
+  <path d="M66,176 L60,184" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M72,178 L70,186" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M80,179 L82,187" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M120,176 L126,184" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M114,178 L116,186" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M108,179 L106,187" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- body -->
+  <ellipse cx="100" cy="122" rx="42" ry="44" fill="url(#bodyGrad)"/>
+  <!-- belly armor plates -->
+  <ellipse cx="100" cy="132" rx="24" ry="30" fill="#fecaca" opacity="0.6"/>
+  <path d="M80,116 Q100,108 120,116 Q120,124 100,130 Q80,124 80,116 Z" fill="#fecaca" opacity="0.4"/>
+  <path d="M82,128 Q100,122 118,128 Q118,136 100,142 Q82,136 82,128 Z" fill="#fecaca" opacity="0.4"/>
+  <!-- front arms -->
+  <path d="M62,120 Q44,112 36,126 Q44,128 46,138 Q54,132 58,140 Z" fill="#dc2626"/>
+  <path d="M138,120 Q156,112 164,126 Q156,128 154,138 Q146,132 142,140 Z" fill="#dc2626"/>
+  <!-- arm claws -->
+  <path d="M38,126 L30,120" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M42,134 L34,132" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M162,126 L170,120" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M158,134 L166,132" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- wings spread -->
+  <path d="M62,90 Q18,50 14,92 Q28,80 36,96 Q18,110 20,136 Q36,118 50,130 Q36,150 44,166 Q58,146 62,156 Z" fill="#ef4444" opacity="0.95"/>
+  <path d="M138,90 Q182,50 186,92 Q172,80 164,96 Q182,110 180,136 Q164,118 150,130 Q164,150 156,166 Q142,146 138,156 Z" fill="#ef4444" opacity="0.95"/>
+  <!-- wing ribs -->
+  <path d="M22,94 Q36,82 48,94" fill="none" stroke="#b91c1c" stroke-width="1.5"/>
+  <path d="M22,110 Q36,100 48,110" fill="none" stroke="#b91c1c" stroke-width="1.5"/>
+  <path d="M24,126 Q38,118 50,126" fill="none" stroke="#b91c1c" stroke-width="1.5"/>
+  <path d="M178,94 Q164,82 152,94" fill="none" stroke="#b91c1c" stroke-width="1.5"/>
+  <path d="M178,110 Q164,100 152,110" fill="none" stroke="#b91c1c" stroke-width="1.5"/>
+  <path d="M176,126 Q162,118 150,126" fill="none" stroke="#b91c1c" stroke-width="1.5"/>
+  <!-- neck -->
+  <rect x="86" y="70" width="28" height="38" rx="14" fill="#dc2626"/>
+  <!-- neck spikes -->
+  <polygon points="88,74 82,60 90,70" fill="#b91c1c"/>
+  <polygon points="100,70 96,56 104,66" fill="#b91c1c"/>
+  <polygon points="112,74 118,60 110,70" fill="#b91c1c"/>
+  <!-- head -->
+  <ellipse cx="100" cy="58" rx="34" ry="28" fill="#ef4444"/>
+  <!-- big horns -->
+  <polygon points="82,40 72,16 90,36" fill="#b91c1c"/>
+  <polygon points="118,40 128,16 110,36" fill="#b91c1c"/>
+  <!-- secondary horns -->
+  <polygon points="88,38 84,26 92,34" fill="#dc2626"/>
+  <polygon points="112,38 116,26 108,34" fill="#dc2626"/>
+  <!-- snout -->
+  <ellipse cx="100" cy="70" rx="18" ry="11" fill="#fca5a5"/>
+  <circle cx="93" cy="69" r="3" fill="#7f1d1d"/>
+  <circle cx="107" cy="69" r="3" fill="#7f1d1d"/>
+  <!-- eyes slanted -->
+  <ellipse cx="85" cy="52" rx="9" ry="7" fill="#0c0a09" transform="rotate(-15,85,52)"/>
+  <ellipse cx="115" cy="52" rx="9" ry="7" fill="#0c0a09" transform="rotate(15,115,52)"/>
+  <circle cx="87" cy="50" r="4" fill="#fbbf24"/>
+  <circle cx="117" cy="50" r="4" fill="#fbbf24"/>
+  <circle cx="88" cy="51" r="2" fill="white"/>
+  <circle cx="118" cy="51" r="2" fill="white"/>
+  <!-- fire breath -->
+  <path d="M114,72 Q130,60 146,68 Q138,80 124,80 Q118,90 110,82 Z" fill="#fbbf24" opacity="0.9"/>
+  <path d="M120,65 Q134,56 148,62" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
