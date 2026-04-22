@@ -106,6 +106,9 @@
 
     // ── Cargar lista de hijos ──────────────────────────────────
     async function loadChildren() {
+      const container = document.getElementById('children-list');
+      container.innerHTML = `<div class="empty-state"><p>Cargando…</p></div>`;
+
       const { data, error } = await supabase
         .from('students')
         .select(`
@@ -114,9 +117,16 @@
         `)
         .eq('parent_id', parentProfile.id);
 
-      const container = document.getElementById('children-list');
+      if (error) {
+        container.innerHTML = `
+          <div class="alert-card" style="margin-top:var(--space-2)">
+            ⚠️ Error de conexión al cargar tus hijos.<br>
+            <span style="font-size:.75rem;opacity:.8">${error.message}</span>
+          </div>`;
+        return;
+      }
 
-      if (error || !data || data.length === 0) {
+      if (!data || data.length === 0) {
         container.innerHTML = `
           <div class="empty-state" style="padding:var(--space-6)">
             <p style="font-size:.85rem">Aún no tienes hijos vinculados.</p>
@@ -393,58 +403,108 @@
       const modal = document.createElement('div');
       modal.className = 'level-up-overlay';
       modal.innerHTML = `
-        <div class="panel" style="max-width:360px;width:90%">
-          <h3 style="margin-bottom:var(--space-4)">Vincular hijo/a</h3>
+        <div class="panel" style="max-width:380px;width:90%">
+          <h3 style="margin-bottom:var(--space-2)">Vincular hijo/a</h3>
           <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:var(--space-4)">
-            Ingresa el nombre de usuario de la cuenta estudiante de tu hijo/a.
+            Ingresa el nombre de usuario de la cuenta estudiante de tu hijo/a
+            (no distingue mayúsculas).
           </p>
           <div class="form-group" style="margin-bottom:var(--space-4)">
             <label class="form-label" for="child-username">Nombre de usuario del estudiante</label>
-            <input class="form-input" type="text" id="child-username" placeholder="ej. juancho2026" />
+            <input
+              class="form-input"
+              type="text"
+              id="child-username"
+              placeholder="ej. juancho2026"
+              autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
+            />
           </div>
-          <div id="link-msg" style="font-size:.8rem;color:var(--error);margin-bottom:var(--space-3);display:none"></div>
+          <div
+            id="link-msg"
+            role="alert"
+            style="font-size:.82rem;border-radius:8px;padding:10px 12px;margin-bottom:var(--space-3);display:none"
+          ></div>
           <div style="display:flex;gap:var(--space-3)">
             <button class="btn btn--primary btn--full" id="btn-confirm-link">Vincular</button>
-            <button class="btn btn--ghost btn--full" onclick="this.closest('.level-up-overlay').remove()">Cancelar</button>
+            <button class="btn btn--ghost btn--full" id="btn-cancel-link">Cancelar</button>
           </div>
         </div>`;
       document.body.appendChild(modal);
 
-      document.getElementById('btn-confirm-link').addEventListener('click', async () => {
-        const username = document.getElementById('child-username').value.trim();
-        const msgEl    = document.getElementById('link-msg');
+      document.getElementById('btn-cancel-link').addEventListener('click', () => modal.remove());
 
-        if (!username) { msgEl.style.display = 'block'; msgEl.textContent = 'Ingresa un nombre de usuario.'; return; }
+      // Cerrar al hacer clic fuera del panel
+      modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
 
-        // Buscar el estudiante por username
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('id, role')
-          .eq('username', username)
-          .single();
+      const input  = document.getElementById('child-username');
+      const msgEl  = document.getElementById('link-msg');
+      const btnOk  = document.getElementById('btn-confirm-link');
 
-        if (!profileData || profileData.role !== 'student') {
-          msgEl.style.display = 'block';
-          msgEl.textContent = 'Usuario no encontrado o no es una cuenta de estudiante.';
+      // Helpers de feedback
+      function showMsg(text, isError = true) {
+        msgEl.style.display = 'block';
+        msgEl.style.background    = isError ? 'rgba(239,68,68,.1)'  : 'rgba(34,197,94,.1)';
+        msgEl.style.border        = isError ? '1px solid rgba(239,68,68,.3)' : '1px solid rgba(34,197,94,.3)';
+        msgEl.style.color         = isError ? 'var(--error)' : '#22c55e';
+        msgEl.textContent         = text;
+      }
+      function hideMsg() { msgEl.style.display = 'none'; }
+
+      input.addEventListener('input', hideMsg);
+
+      btnOk.addEventListener('click', async () => {
+        const username = input.value.trim();
+
+        if (!username) {
+          showMsg('Ingresa un nombre de usuario.');
+          input.focus();
           return;
         }
 
-        // Actualizar parent_id del estudiante
-        const { error } = await supabase
-          .from('students')
-          .update({ parent_id: parentProfile.id })
-          .eq('profile_id', profileData.id)
-          .is('parent_id', null); // solo si no tiene padre asignado
+        btnOk.disabled = true;
+        btnOk.textContent = 'Buscando…';
+        hideMsg();
 
-        if (error) {
-          msgEl.style.display = 'block';
-          msgEl.textContent = 'Error al vincular. Es posible que este estudiante ya esté vinculado a otra cuenta.';
-          return;
+        try {
+          // Usar la función SECURITY DEFINER (case-insensitive, sin problemas de RLS)
+          const { data, error: rpcError } = await supabase
+            .rpc('link_child_by_username', { p_username: username });
+
+          if (rpcError) {
+            // Error de red / Supabase inalcanzable
+            showMsg(`Error de conexión: ${rpcError.message}. Verifica tu internet e inténtalo de nuevo.`);
+            return;
+          }
+
+          if (!data.ok) {
+            // Errores de lógica de negocio con mensajes claros
+            showMsg(data.message);
+            return;
+          }
+
+          // Éxito
+          showMsg(`✓ ${data.message}`, false);
+          setTimeout(async () => {
+            modal.remove();
+            await loadChildren();
+          }, 1200);
+
+        } catch (err) {
+          showMsg(`Error inesperado: ${err.message ?? 'Intenta de nuevo.'}`);
+        } finally {
+          btnOk.disabled = false;
+          btnOk.textContent = 'Vincular';
         }
-
-        modal.remove();
-        await loadChildren();
       });
+
+      // Enviar con Enter
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') btnOk.click();
+      });
+
+      input.focus();
     }
 
   </script>
