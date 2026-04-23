@@ -291,10 +291,33 @@
 
         <!-- Contraseña -->
         <div class="form-group">
-          <label class="form-label" for="password">Contraseña</label>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--space-1-5)">
+            <label class="form-label" for="password" style="margin-bottom:0">Contraseña</label>
+            <button type="button" id="btn-forgot" onclick="toggleForgot()"
+                    style="background:none;border:none;font-size:.75rem;color:var(--accent-purple);cursor:pointer;padding:0">
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
           <input class="form-input" type="password" id="password" name="password"
                  placeholder="Mínimo 8 caracteres" autocomplete="current-password"
                  minlength="8" required />
+        </div>
+
+        <!-- Panel recuperar contraseña (oculto por defecto) -->
+        <div id="forgot-panel" style="display:none;margin-bottom:var(--space-4);
+             background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.25);
+             border-radius:var(--radius-md);padding:var(--space-4)">
+          <p style="font-size:.82rem;color:var(--text-secondary);margin:0 0 var(--space-3)">
+            Escribe tu correo y te enviaremos un enlace para restablecer tu contraseña.
+          </p>
+          <input class="form-input" type="email" id="forgot-email"
+                 placeholder="tu@correo.com" autocomplete="email"
+                 style="margin-bottom:var(--space-2)" />
+          <button type="button" onclick="sendResetEmail()"
+                  class="btn-auth" id="btn-reset-send" style="margin-top:0">
+            <span class="btn-text">Enviar enlace</span>
+            <span class="btn-spinner" aria-hidden="true"></span>
+          </button>
         </div>
 
         <!-- Grado (solo registro estudiante) -->
@@ -345,6 +368,8 @@
 
     function setTab(tab) {
       currentTab = tab;
+      const fp = document.getElementById('forgot-panel');
+      if (fp) fp.style.display = 'none';
       document.getElementById('tab-login').classList.toggle('active',    tab === 'login');
       document.getElementById('tab-register').classList.toggle('active', tab === 'register');
       document.getElementById('tab-login').setAttribute('aria-selected',    String(tab === 'login'));
@@ -365,6 +390,17 @@
 
     function clearMessage() {
       document.getElementById('auth-msg').className = 'auth-message';
+    }
+
+    function toggleForgot() {
+      const panel = document.getElementById('forgot-panel');
+      const open  = panel.style.display === 'none';
+      panel.style.display = open ? 'block' : 'none';
+      if (open) {
+        const emailVal = document.getElementById('email').value.trim();
+        if (emailVal) document.getElementById('forgot-email').value = emailVal;
+        document.getElementById('forgot-email').focus();
+      }
     }
   </script>
 
@@ -493,6 +529,27 @@
         btn.disabled = false;
       }
     });
+
+    // ── Recuperar contraseña ───────────────────────────────
+    async function sendResetEmail() {
+      const email = document.getElementById('forgot-email').value.trim();
+      if (!email) { showMessage('Escribe tu correo para continuar.', 'error'); return; }
+
+      const btn = document.getElementById('btn-reset-send');
+      btn.classList.add('loading'); btn.disabled = true;
+
+      const redirectTo = window.location.origin + '/reset-password.html';
+      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+
+      btn.classList.remove('loading'); btn.disabled = false;
+
+      if (error) {
+        showMessage('Error: ' + error.message, 'error');
+      } else {
+        document.getElementById('forgot-panel').style.display = 'none';
+        showMessage('✅ Revisa tu correo — te enviamos el enlace para restablecer tu contraseña.', 'success');
+      }
+    }
 
     // ── Redirección si ya hay sesión activa ────────────────
     (async () => {
