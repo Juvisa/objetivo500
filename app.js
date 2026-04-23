@@ -3,7 +3,15 @@
 // vienen como globales desde app.html
 
 // ── Constantes ────────────────────────────────────────────────
-const SECS_PER_Q = 120;
+const SECS_PER_Q = 120; // fallback genérico
+
+const SECS_PER_Q_BY_SUBJECT = {
+  lectura_critica:    105,  // 150 min ÷ 85 preguntas
+  matematicas:        108,  // 90 min ÷ 50 preguntas
+  ciencias_naturales:  78,  // 75 min ÷ 58 preguntas
+  sociales:           108,  // 90 min ÷ 50 preguntas
+  ingles:              90,  // 45 min ÷ 30 preguntas
+};
 const SUBJECTS   = {
   lectura_critica:       'Lectura Crítica',
   matematicas:           'Matemáticas',
@@ -30,6 +38,7 @@ let STATE = {
     currentIdx:  0,
     answers:     {},  // questionId → {selected_index, is_correct, time_seconds}
     timerLeft:   SECS_PER_Q,
+    secsPerQ:    SECS_PER_Q,
     timerHandle: null,
     started:     false,
   },
@@ -554,12 +563,15 @@ window.showSubjectPicker = function(n) {
 window.startSession = async function(n, subject, weakOnly = false) {
   // Resetear estado de sesión
   clearTimer();
+  const secsForSubject = SECS_PER_Q_BY_SUBJECT[subject] ?? SECS_PER_Q;
   STATE.session = {
     id:         crypto.randomUUID(),
+    subject:    subject,
     questions:  [],
     currentIdx: 0,
     answers:    {},
-    timerLeft:  SECS_PER_Q,
+    timerLeft:  secsForSubject,
+    secsPerQ:   secsForSubject,
     timerHandle:null,
     started:    false,
   };
@@ -712,7 +724,7 @@ async function confirmAnswer(selectedIndex) {
   clearTimer();
 
   const q          = STATE.session.questions[STATE.session.currentIdx];
-  const timeUsed   = SECS_PER_Q - STATE.session.timerLeft;
+  const timeUsed   = (STATE.session.secsPerQ ?? SECS_PER_Q) - STATE.session.timerLeft;
 
   // Guardar en estado local inmediatamente
   STATE.session.answers[q.id] = {
@@ -936,7 +948,8 @@ async function autoAdvance() {
   if (!q || STATE.session.answers[q.id]) return;
 
   // Tiempo agotado → marcar como no respondida (index = -1 convención)
-  STATE.session.answers[q.id] = { selected_index: -1, is_correct: false, time_seconds: SECS_PER_Q };
+  const secsPerQ = STATE.session.secsPerQ ?? SECS_PER_Q;
+  STATE.session.answers[q.id] = { selected_index: -1, is_correct: false, time_seconds: secsPerQ };
 
   // Registrar en Supabase como -1 (opción inválida = no respondida)
   try {
@@ -945,7 +958,7 @@ async function autoAdvance() {
       question_id:    q.id,
       selected_index: 0,   // placeholder, is_correct=false
       is_correct:     false,
-      time_seconds:   SECS_PER_Q,
+      time_seconds:   secsPerQ,
       session_id:     STATE.session.id,
     });
     // Actualizar weak_topic también
@@ -958,7 +971,7 @@ async function autoAdvance() {
   } catch {}
 
   showToast('Tiempo agotado', 'Pasando a la siguiente pregunta…', '⏰', 'error');
-  STATE.session.timerLeft  = SECS_PER_Q;
+  STATE.session.timerLeft  = STATE.session.secsPerQ ?? SECS_PER_Q;
   STATE.session.currentIdx++;
   renderQuestion();
 }
@@ -1006,7 +1019,7 @@ function offerResume(saved) {
   // Click en el toast para continuar
   document.querySelector('.toast')?.addEventListener('click', () => {
     STATE.session = { ...saved, timerHandle: null };
-    STATE.session.timerLeft = SECS_PER_Q; // reiniciar timer al reanudar
+    STATE.session.timerLeft = STATE.session.secsPerQ ?? SECS_PER_Q; // reiniciar timer al reanudar
     renderQuestion();
   }, { once: true });
 }
@@ -1267,12 +1280,15 @@ async function startSessionByTopic(subject, topic) {
   // Shuffle y limitar a 10
   const shuffled = questions.sort(() => Math.random() - 0.5).slice(0, 10);
 
+  const topicSecs = SECS_PER_Q_BY_SUBJECT[subject] ?? SECS_PER_Q;
   STATE.session = {
     id:          crypto.randomUUID(),
+    subject:     subject,
     questions:   shuffled,
     currentIdx:  0,
     answers:     {},
-    timerLeft:   SECS_PER_Q,
+    timerLeft:   topicSecs,
+    secsPerQ:    topicSecs,
     timerHandle: null,
     started:     true,
   };
