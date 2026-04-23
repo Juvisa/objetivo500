@@ -1052,3 +1052,184 @@ h5 { font-size: .9rem;   font-weight: 600; }
   line-height: 1.6;
 }
 .w-full { width: 100%; }
+
+/* ============================================================
+   PLAN ADAPTATIVO — Heatmap + Priority Plan + Hack Prime
+   ============================================================ */
+
+/* ── Mapa de Calor ─────────────────────────────────────────── */
+.heatmap-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.heatmap-subject {
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.heatmap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: var(--space-3);
+  font-size: .88rem;
+}
+
+.heat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.heat-cell {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: .75rem;
+  font-weight: 600;
+  transition: opacity .15s, transform .15s;
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.heat-cell:hover { opacity: .82; transform: translateY(-1px); }
+
+.heat--green { background: rgba(34,197,94,.18); color: #4ade80; border: 1px solid rgba(34,197,94,.3); }
+.heat--yellow{ background: rgba(245,158,11,.18); color: #fbbf24; border: 1px solid rgba(245,158,11,.3); }
+.heat--red   { background: rgba(239, 68, 68,.18); color: #f87171; border: 1px solid rgba(239,68,68,.3); }
+
+.heat-icon { font-size: .8rem; flex-shrink: 0; }
+.heat-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Leyenda de colores */
+.heat-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: .7rem;
+  font-weight: 600;
+  margin-left: 6px;
+}
+
+/* ── Plan Adaptativo Prioritario ───────────────────────────── */
+.priority-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-2);
+  transition: background .15s;
+}
+.priority-item:hover { background: var(--bg-elevated); }
+
+.priority-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.priority-topic {
+  font-weight: 700;
+  font-size: .88rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.priority-desc {
+  font-size: .72rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── Hack Prime ────────────────────────────────────────────── */
+.btn--hack {
+  background: linear-gradient(135deg, rgba(99,102,241,.25), rgba(139,92,246,.25));
+  border: 1px solid rgba(139,92,246,.4);
+  color: #a78bfa;
+  font-weight: 700;
+  font-size: .82rem;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all .2s;
+  width: 100%;
+}
+.btn--hack:hover {
+  background: linear-gradient(135deg, rgba(99,102,241,.4), rgba(139,92,246,.4));
+  border-color: rgba(139,92,246,.7);
+  color: #c4b5fd;
+}
+
+.hack-prime-panel {
+  margin-top: var(--space-3);
+  background: linear-gradient(135deg, rgba(99,102,241,.12), rgba(139,92,246,.08));
+  border: 1px solid rgba(139,92,246,.3);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  animation: fadeIn .2s ease;
+}
+
+.hack-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--space-3);
+}
+
+.hack-badge {
+  background: linear-gradient(90deg, #7c3aed, #4f46e5);
+  color: white;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  padding: 3px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.hack-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.hack-bullets li {
+  font-size: .85rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  padding-left: 4px;
+  border-left: 2px solid rgba(139,92,246,.4);
+  padding-left: 10px;
+}
+
+.hack-bullets li strong {
+  color: #c4b5fd;
+}
+
+@keyframes fadeIn { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform: translateY(0); } }
+

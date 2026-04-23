@@ -145,12 +145,21 @@ function renderHeader() {
       </div>
     </div>
 
-    <div style="position:relative">
+    <div style="display:flex;align-items:center;gap:8px">
       <img
         class="avatar avatar--sm"
         src="${STATE.profile.avatar_url || `https://api.dicebear.com/8.x/thumbs/svg?seed=${STATE.profile.username}`}"
         alt="Avatar de ${STATE.profile.username}"
+        style="cursor:pointer"
+        title="${STATE.profile.username}"
       />
+      <button
+        onclick="signOut()"
+        class="btn btn--ghost btn--sm"
+        title="Cerrar sesión"
+        style="font-size:.75rem;padding:4px 10px"
+        aria-label="Cerrar sesión"
+      >↩ Salir</button>
     </div>
   `;
 }
@@ -211,11 +220,29 @@ function renderDashboard() {
       </div>
     </section>
 
-    <!-- Rendimiento por área -->
+    <!-- Aura de Conocimiento — mapa de calor por tema -->
     <section class="panel" style="margin-top:var(--space-6)">
-      <h3 style="margin-bottom:var(--space-4)">Rendimiento por área</h3>
-      <div class="area-chart" id="area-chart">
-        <div class="empty-state"><p>Completa al menos una sesión para ver tu rendimiento.</p></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:var(--space-4)">
+        <h3 style="margin:0">🗺️ Aura de Conocimiento</h3>
+        <span style="font-size:.75rem;color:var(--text-muted)">
+          <span class="heat-legend heat--green">✓ Dominado</span>
+          <span class="heat-legend heat--yellow">~ Aprendiendo</span>
+          <span class="heat-legend heat--red">✗ Crítico</span>
+        </span>
+      </div>
+      <div id="heatmap-container">
+        <div class="empty-state"><p>Cargando…</p></div>
+      </div>
+    </section>
+
+    <!-- Plan Adaptativo — temas priorizados -->
+    <section class="panel" style="margin-top:var(--space-6)">
+      <h3 style="margin-bottom:var(--space-2)">🚀 Tu Plan Adaptativo</h3>
+      <p style="font-size:.78rem;color:var(--text-muted);margin-bottom:var(--space-4)">
+        Ordenado por impacto real: dominar estos temas primero te sube más puntos.
+      </p>
+      <div id="priority-plan-container">
+        <div class="empty-state"><p>Cargando…</p></div>
       </div>
     </section>
 
@@ -246,7 +273,7 @@ function renderDashboard() {
 
   // Cargar datos asíncronos
   computeEstimatedScore();
-  loadAreaPerformance();
+  loadAdaptivePlan();
   loadLeaderboard();
   loadFeed();
 
@@ -258,17 +285,18 @@ function renderDashboard() {
 
 function renderModeCards() {
   const modes = [
-    { id: 'diagnostico', emoji: '🔍', title: 'Diagnóstico',     desc: '20 preguntas mixtas', n: 20, subject: null },
-    { id: 'practica',    emoji: '🎯', title: 'Práctica libre',   desc: 'Elige una materia',   n: 12, subject: null, hasSubjectPicker: true },
-    { id: 'simulacro',   emoji: '🏆', title: 'Simulacro rápido', desc: '45 preguntas mixtas', n: 45, subject: null },
-    { id: 'repaso',      emoji: '🔄', title: 'Repasar errores',  desc: 'Solo tus debilidades',n: 15, subject: null, weakOnly: true },
+    { id: 'diagnostico', emoji: '🔍', title: 'Diagnóstico',      desc: '20 preguntas mixtas',    onclick: `startSession(20, null, false)` },
+    { id: 'practica',    emoji: '🎯', title: 'Práctica libre',    desc: 'Elige una materia',      onclick: `showSubjectPicker(12)` },
+    { id: 'simulacro',   emoji: '🏆', title: 'Simulacro rápido',  desc: '45 preguntas mixtas',    onclick: `startSession(45, null, false)` },
+    { id: 'repaso',      emoji: '🔄', title: 'Repasar errores',   desc: 'Solo tus debilidades',   onclick: `startSession(15, null, true)` },
+    { id: 'reto',        emoji: '⚡', title: 'Reto Temático',     desc: 'Ataca tu mayor debilidad', onclick: `showTopicChallengePicker()` },
   ];
 
   return modes.map(m => `
     <div class="panel panel--elevated" style="cursor:pointer;transition:border-color .2s;border:2px solid var(--border)"
          onmouseenter="this.style.borderColor='var(--accent-purple)'"
          onmouseleave="this.style.borderColor='var(--border)'"
-         onclick="${m.hasSubjectPicker ? `showSubjectPicker(${m.n})` : `startSession(${m.n}, null, ${m.weakOnly ?? false})`}">
+         onclick="${m.onclick}">
       <div style="font-size:2rem;margin-bottom:var(--space-2)">${m.emoji}</div>
       <div style="font-weight:700;margin-bottom:var(--space-1)">${m.title}</div>
       <div style="font-size:.8rem;color:var(--text-muted)">${m.desc}</div>
@@ -625,7 +653,15 @@ function renderQuestion() {
           <div class="explanation-title">💡 Explicación pedagógica</div>
           <p class="explanation-text">${escapeHtml(q.explanation)}</p>
           ${q.concept_key ? `<p style="margin-top:8px;font-size:.75rem;color:var(--text-muted)">Concepto clave: <strong>${escapeHtml(q.concept_key)}</strong></p>` : ''}
-        </div>` : ''}
+        </div>
+        ${!STATE.session.answers[q.id]?.is_correct ? `
+        <div style="margin-top:var(--space-3)">
+          <button class="btn btn--hack" id="hack-btn"
+                  onclick="toggleHackPrime('${q.id}')">
+            ⚡ Ver Hack Prime
+          </button>
+          <div id="hack-prime-panel" class="hack-prime-panel" style="display:none"></div>
+        </div>` : ''}` : ''}
 
       <!-- Navegación -->
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--space-6)">
@@ -1116,6 +1152,173 @@ function escapeHtml(str) {
 }
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ══════════════════════════════════════════════════════════════
+//  PLAN ADAPTATIVO — carga heatmap + plan prioritario
+// ══════════════════════════════════════════════════════════════
+async function loadAdaptivePlan() {
+  if (!STATE.student || typeof AdaptivePlan === 'undefined') return;
+  const weakTopics  = await AdaptivePlan.load(STATE.student.id);
+  const prioritized = AdaptivePlan.computePriority(weakTopics);
+  AdaptivePlan.renderHeatmap('heatmap-container', weakTopics);
+  AdaptivePlan.renderPriorityPlan('priority-plan-container', prioritized);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RETO TEMÁTICO — selector y arranque de sesión por tema
+// ══════════════════════════════════════════════════════════════
+window.showTopicChallengePicker = async function() {
+  // Obtener los 3 temas más débiles del estudiante
+  const { data: weak } = await supabase
+    .from('weak_topics')
+    .select('subject, topic, error_rate')
+    .eq('student_id', STATE.student.id)
+    .gt('error_rate', 0.3)
+    .order('error_rate', { ascending: false })
+    .limit(3);
+
+  const modal = document.createElement('div');
+  modal.className = 'level-up-overlay';
+  modal.style.zIndex = '200';
+  modal.id = 'topic-picker-modal';
+
+  const weakRows = weak && weak.length > 0
+    ? `<div style="margin-bottom:var(--space-4)">
+        <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:var(--space-2)">
+          🔥 Tus temas más débiles ahora:
+        </p>
+        ${weak.map(w => `
+          <button class="btn btn--primary btn--full" style="margin-bottom:6px;text-align:left;justify-content:space-between"
+                  onclick="startTopicChallenge('${w.subject}', '${w.topic.replace(/'/g, "\\'")}'); document.getElementById('topic-picker-modal').remove()">
+            <span>${escapeHtml(w.topic)}</span>
+            <span style="font-size:.75rem;opacity:.8">${Math.round((1-w.error_rate)*100)}% dominio</span>
+          </button>`).join('')}
+       </div>`
+    : '';
+
+  modal.innerHTML = `
+    <div class="panel" style="max-width:420px;width:90%;animation:cardIn .3s ease both">
+      <h3 style="margin-bottom:var(--space-4)">⚡ Reto Temático</h3>
+      ${weakRows}
+      <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:var(--space-2)">
+        O elige un área completa:
+      </p>
+      <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+        ${Object.entries(SUBJECTS).map(([key, label]) => `
+          <button class="btn btn--ghost btn--full"
+                  onclick="startTopicChallenge('${key}'); document.getElementById('topic-picker-modal').remove()">
+            ${SUBJECT_ICONS_MAP[key] ?? ''} ${label}
+          </button>`).join('')}
+      </div>
+      <button class="btn btn--ghost btn--sm" style="margin-top:var(--space-4);width:100%"
+              onclick="document.getElementById('topic-picker-modal').remove()">Cancelar</button>
+    </div>`;
+
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+};
+
+// Mapa de íconos accesible desde HTML inline
+const SUBJECT_ICONS_MAP = {
+  matematicas:        '📐',
+  lectura_critica:    '📖',
+  ciencias_naturales: '🔬',
+  sociales:           '🌎',
+  ingles:             '🇬🇧',
+};
+
+/**
+ * Inicia una sesión de 10 preguntas enfocada en un área y/o tema específico.
+ * Si se pasa topic, filtra las preguntas por ese tema.
+ * Si solo se pasa subject, usa el mecanismo estándar (ya prioriza temas débiles).
+ */
+window.startTopicChallenge = async function(subject, topic = null) {
+  if (topic) {
+    await startSessionByTopic(subject, topic);
+  } else {
+    startSession(10, subject, false);
+  }
+};
+
+async function startSessionByTopic(subject, topic) {
+  clearTimer();
+
+  const root = document.getElementById('app-root');
+  if (root) root.innerHTML = `
+    <div class="empty-state" style="padding-top:80px">
+      <div style="font-size:2rem;margin-bottom:16px">⚡</div>
+      <p>Preparando Reto Temático: ${escapeHtml(topic)}…</p>
+    </div>`;
+
+  // Buscar preguntas del tema específico
+  const { data: questions, error } = await supabase
+    .from('questions')
+    .select('*')
+    .eq('subject', subject)
+    .ilike('topic', `%${topic.slice(0, 30)}%`)
+    .limit(30);
+
+  if (error || !questions || questions.length === 0) {
+    showToast('Sin preguntas', `No hay preguntas para: ${topic}`, '⚠️', 'error');
+    renderDashboard();
+    return;
+  }
+
+  // Shuffle y limitar a 10
+  const shuffled = questions.sort(() => Math.random() - 0.5).slice(0, 10);
+
+  STATE.session = {
+    id:          crypto.randomUUID(),
+    questions:   shuffled,
+    currentIdx:  0,
+    answers:     {},
+    timerLeft:   SECS_PER_Q,
+    timerHandle: null,
+    started:     true,
+  };
+
+  saveSessionToStorage();
+  renderQuestion();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  HACK PRIME — panel de 3 bullets tras respuesta incorrecta
+// ══════════════════════════════════════════════════════════════
+window.toggleHackPrime = function(qId) {
+  const panel = document.getElementById('hack-prime-panel');
+  const btn   = document.getElementById('hack-btn');
+  if (!panel || !btn) return;
+
+  if (panel.style.display !== 'none') {
+    panel.style.display = 'none';
+    btn.textContent = '⚡ Ver Hack Prime';
+    return;
+  }
+
+  const q = STATE.session.questions.find(q => q.id === qId);
+  if (!q) return;
+
+  const bullets = AdaptivePlan.getHackPrime(q);
+  panel.innerHTML = `
+    <div class="hack-header">
+      <span class="hack-badge">⚡ HACK PRIME</span>
+      <span style="font-size:.72rem;color:var(--text-muted)">Llega a la respuesta en &lt;40 seg</span>
+    </div>
+    <ul class="hack-bullets">
+      ${bullets.map(b => `<li>${b}</li>`).join('')}
+    </ul>`;
+
+  panel.style.display = 'block';
+  btn.textContent = '⚡ Ocultar Hack';
+};
+
+// ══════════════════════════════════════════════════════════════
+//  LOGOUT
+// ══════════════════════════════════════════════════════════════
+window.signOut = async function() {
+  await supabase.auth.signOut();
+  window.location.href = './login.html';
+};
 
 // ── Exponer para onclick en HTML ──────────────────────────────
 window.renderDashboard  = renderDashboard;
