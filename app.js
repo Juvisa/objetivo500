@@ -3,7 +3,7 @@
 // vienen como globales desde app.html
 
 // ── Constantes ────────────────────────────────────────────────
-const SECS_PER_Q = 120; // fallback genérico
+const SECS_PER_Q = 90; // sesión mixta: promedio real del ICFES
 
 const SECS_PER_Q_BY_SUBJECT = {
   lectura_critica:    105,  // 150 min ÷ 85 preguntas
