@@ -412,11 +412,18 @@ async function computeEstimatedScore() {
 }
 
 function animateNumber(el, from, to, duration) {
-  const start = performance.now();
+  const start     = performance.now();
+  const tickEvery = window.AudioEvents?.calcTickInterval(from, to, duration) ?? Infinity;
   function step(now) {
-    const t = Math.min(1, (now - start) / duration);
-    el.textContent = Math.round(from + (to - from) * easeOut(t));
-    if (t < 1) requestAnimationFrame(step);
+    const t       = Math.min(1, (now - start) / duration);
+    const current = Math.round(from + (to - from) * easeOut(t));
+    el.textContent = current;
+    if (current % tickEvery === 0) window.AudioEvents?.onScoreTick(current, from, to);
+    if (t < 1) {
+      requestAnimationFrame(step);
+    } else {
+      window.AudioEvents?.onScoreFinale(to);
+    }
   }
   requestAnimationFrame(step);
 }
