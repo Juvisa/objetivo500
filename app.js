@@ -73,9 +73,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     GuardianWidget.init(STATE.guardianUserId, 'guardian-widget-container');
   }
 
-  // Si hay una sesión pendiente en localStorage, ofrecer reanudar
-  const saved = loadSavedSession();
-  if (saved) offerResume(saved);
+  // Si hay sesión pendiente, mostrar banner (no toast) para decisión explícita
+  if (window.SessionPersistence && STATE.student?.id) {
+    const draft = await SessionPersistence.loadDraft(STATE.student.id);
+    if (draft && draft.questions?.length) {
+      SessionPersistence.showDraftBanner(
+        draft,
+        // onResume: restaurar sesión desde el draft
+        (d) => {
+          STATE.session = {
+            id:          crypto.randomUUID(),
+            subject:     d.subject,
+            questions:   d.questions,
+            currentIdx:  d.currentIndex,
+            answers:     d.answers ?? {},
+            timerLeft:   d.secsPerQ ?? SECS_PER_Q,
+            secsPerQ:    d.secsPerQ ?? SECS_PER_Q,
+            timerHandle: null,
+            started:     true,
+            startedAt:   d.startedAt,
+            sessionType: d.sessionType ?? 'practice',
+          };
+          SessionPersistence.initAutoSave();
+          renderQuestion();
+        },
+        // onDiscard: el banner ya limpió el draft, solo redibujar dashboard
+        () => renderDashboard()
+      );
+    }
+  } else {
+    const saved = loadSavedSession();
+    if (saved) offerResume(saved);
+  }
 });
 
 // ══════════════════════════════════════════════════════════════
@@ -563,17 +592,22 @@ window.showSubjectPicker = function(n) {
 window.startSession = async function(n, subject, weakOnly = false) {
   // Resetear estado de sesión
   clearTimer();
+  if (window.SafeExit)            SafeExit.destroy();
+  if (window.SessionPersistence)  SessionPersistence.stopAutoSave();
+
   const secsForSubject = SECS_PER_Q_BY_SUBJECT[subject] ?? SECS_PER_Q;
   STATE.session = {
-    id:         crypto.randomUUID(),
-    subject:    subject,
-    questions:  [],
-    currentIdx: 0,
-    answers:    {},
-    timerLeft:  secsForSubject,
-    secsPerQ:   secsForSubject,
-    timerHandle:null,
-    started:    false,
+    id:          crypto.randomUUID(),
+    subject:     subject,
+    questions:   [],
+    currentIdx:  0,
+    answers:     {},
+    timerLeft:   secsForSubject,
+    secsPerQ:    secsForSubject,
+    timerHandle: null,
+    started:     false,
+    startedAt:   new Date().toISOString(),
+    sessionType: weakOnly ? 'repaso' : n >= 40 ? 'simulacro' : 'practice',
   };
 
   const root = document.getElementById('app-root');
@@ -595,6 +629,7 @@ window.startSession = async function(n, subject, weakOnly = false) {
   STATE.session.questions = questions;
   STATE.session.started   = true;
 
+  if (window.SessionPersistence) SessionPersistence.initAutoSave();
   saveSessionToStorage();
   renderQuestion();
 };
@@ -695,6 +730,9 @@ function renderQuestion() {
   // Iniciar timer si la pregunta no está resuelta
   if (!solved) startTimer();
   else clearTimer();
+
+  // Safe Exit: inyectar/actualizar botón en cada render de pregunta
+  if (window.SafeExit) SafeExit.init();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -817,6 +855,11 @@ function computeRachaConsecutiva() {
 async function endSession() {
   clearTimer();
   clearSavedSession();
+  if (window.SafeExit)           SafeExit.destroy();
+  if (window.SessionPersistence) {
+    SessionPersistence.stopAutoSave();
+    if (STATE.student?.id) SessionPersistence.clearDraft(STATE.student.id).catch(() => {});
+  }
 
   const { questions, answers } = STATE.session;
   const total     = questions.length;
@@ -1280,10 +1323,14 @@ async function startSessionByTopic(subject, topic) {
   // Shuffle y limitar a 10
   const shuffled = questions.sort(() => Math.random() - 0.5).slice(0, 10);
 
+  if (window.SafeExit)           SafeExit.destroy();
+  if (window.SessionPersistence) SessionPersistence.stopAutoSave();
+
   const topicSecs = SECS_PER_Q_BY_SUBJECT[subject] ?? SECS_PER_Q;
   STATE.session = {
     id:          crypto.randomUUID(),
     subject:     subject,
+    topic:       topic,
     questions:   shuffled,
     currentIdx:  0,
     answers:     {},
@@ -1291,8 +1338,11 @@ async function startSessionByTopic(subject, topic) {
     secsPerQ:    topicSecs,
     timerHandle: null,
     started:     true,
+    startedAt:   new Date().toISOString(),
+    sessionType: 'practice',
   };
 
+  if (window.SessionPersistence) SessionPersistence.initAutoSave();
   saveSessionToStorage();
   renderQuestion();
 }

@@ -1233,3 +1233,182 @@ h5 { font-size: .9rem;   font-weight: 600; }
 
 @keyframes fadeIn { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform: translateY(0); } }
 
+
+
+/* ══════════════════════════════════════════════════════════════
+   SISTEMA 1 — SAFE EXIT
+   ══════════════════════════════════════════════════════════════ */
+
+/* Botón fijo — siempre visible durante sesión */
+.safe-exit-btn {
+  position: fixed;
+  top: 14px;
+  left: 16px;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: .8rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.safe-exit-btn:hover {
+  background: var(--bg-overlay);
+  color: var(--text-primary);
+  border-color: rgba(239,68,68,.4);
+}
+.safe-exit-label { display: none; }
+@media (min-width: 768px) { .safe-exit-label { display: inline; } }
+
+/* Overlay del modal */
+.safe-exit-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0,0,0,.85);
+  backdrop-filter: blur(4px);
+  place-items: center;
+}
+.safe-exit-overlay.visible { display: grid; }
+
+/* Tarjeta del modal */
+.safe-exit-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8) var(--space-7);
+  max-width: 420px;
+  width: calc(100% - 2rem);
+  text-align: center;
+  animation: cardIn .3s cubic-bezier(.22,1,.36,1) both;
+}
+.safe-exit-guardian-icon { font-size: 2.5rem; margin-bottom: var(--space-4); }
+.safe-exit-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-3);
+  line-height: 1.4;
+}
+.safe-exit-body {
+  font-size: .85rem;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-6);
+  line-height: 1.6;
+}
+.safe-exit-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+@media (min-width: 480px) {
+  .safe-exit-actions { flex-direction: row; justify-content: center; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SISTEMA 4 — ANIMACIÓN DE DESCANSO DEL GUARDIÁN
+   ══════════════════════════════════════════════════════════════ */
+
+.guardian-resting-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(0,0,0,.9);
+  display: grid;
+  place-items: center;
+}
+.guardian-resting-card {
+  text-align: center;
+  padding: var(--space-8);
+}
+.guardian--resting {
+  font-size: 4rem;
+  display: inline-block;
+  animation: guardianRest 3s ease-in-out infinite;
+  margin-bottom: var(--space-4);
+}
+@keyframes guardianRest {
+  0%, 100% { transform: scale(1);    filter: brightness(.8); }
+  50%       { transform: scale(.95); filter: brightness(.55); }
+}
+.guardian-resting-text {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-5);
+  font-style: italic;
+}
+.guardian-energy-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  justify-content: center;
+  margin-bottom: var(--space-4);
+}
+.guardian-energy-track {
+  width: 160px;
+  height: 6px;
+  background: var(--bg-overlay);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.guardian-energy-fill {
+  height: 100%;
+  background: var(--gradient-brand);
+  border-radius: var(--radius-full);
+}
+.guardian-energy-label {
+  font-size: .75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.energy-particles-wrap {
+  position: relative;
+  height: 40px;
+  width: 160px;
+  margin: 0 auto;
+}
+.energy-particle {
+  position: absolute;
+  font-size: .8rem;
+  animation: particleFall 1.5s ease-in forwards;
+}
+@keyframes particleFall {
+  0%   { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(40px); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SISTEMA 2 — BANNER DE SESIÓN PENDIENTE
+   ══════════════════════════════════════════════════════════════ */
+
+.draft-banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  background: var(--bg-elevated);
+  border-left: 3px solid var(--accent-blue, #3b82f6);
+  border-bottom: 1px solid var(--border);
+  font-size: .85rem;
+  color: var(--text-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  animation: slideDown .3s ease-out;
+}
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+.draft-banner-icon { font-size: 1.1rem; flex-shrink: 0; }
+.draft-banner-text { flex: 1; min-width: 200px; }
+.draft-banner-actions { display: flex; gap: var(--space-2); flex-shrink: 0; }
