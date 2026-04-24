@@ -76,6 +76,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     GuardianWidget.init(STATE.guardianUserId, 'guardian-widget-container');
   }
 
+  // Bottom nav mobile — iniciar una sola vez al arrancar la app
+  if (window.BottomNav) BottomNav.init();
+
   // Si hay sesión pendiente, mostrar banner (no toast) para decisión explícita
   if (window.SessionPersistence && STATE.student?.id) {
     const draft = await SessionPersistence.loadDraft(STATE.student.id);
@@ -334,6 +337,8 @@ function renderDashboard() {
   if (STATE.guardianUserId && window.GuardianWidget) {
     GuardianWidget.init(STATE.guardianUserId, 'guardian-widget-container');
   }
+
+  if (window.BottomNav) { BottomNav.show(); BottomNav.setActive('inicio'); }
 }
 
 function renderModeCards() {
@@ -617,6 +622,7 @@ window.startSession = async function(n, subject, weakOnly = false) {
   if (window.SafeExit)            SafeExit.destroy();
   if (window.SessionPersistence)  SessionPersistence.stopAutoSave();
   if (window.AudioEvents)         AudioEvents.stopGuardianAmbient();
+  if (window.BottomNav)           BottomNav.hide();
 
   const secsForSubject = SECS_PER_Q_BY_SUBJECT[subject] ?? SECS_PER_Q;
   STATE.session = {

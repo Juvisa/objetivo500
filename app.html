@@ -5,6 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Objetivo 500 — Estudiar</title>
   <link rel="stylesheet" href="styles.css" />
+  <!-- Tailwind Play CDN — prototipo; reemplazar por build para producción -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'aura-bg':      '#0A0A0F',
+            'aura-surface': '#111118',
+            'aura-surface2':'#1A1A2E',
+            'aura-border':  '#1E1E2E',
+            'aura-blue':    '#3B82F6',
+            'aura-violet':  '#7C3AED',
+            'aura-green':   '#10B981',
+            'aura-gold':    '#F59E0B',
+            'aura-text':    '#F1F5F9',
+            'aura-muted':   '#94A3B8',
+          },
+          minHeight: { 'touch': '44px' },
+          minWidth:  { 'touch': '44px' },
+        }
+      }
+    }
+  </script>
 </head>
 <body>
 
@@ -87,6 +111,9 @@
   <script defer src="lib/audio-config.js"></script>
   <script defer src="lib/audio-engine.js"></script>
   <script defer src="lib/audio-events.js"></script>
+
+  <!-- Bottom Nav — debe cargarse antes que app.js para que BottomNav esté disponible -->
+  <script defer src="components/bottom-nav.js"></script>
 
   <!-- app.js: carga después de todos los defer anteriores (orden garantizado) -->
   <script defer src="app.js"></script>

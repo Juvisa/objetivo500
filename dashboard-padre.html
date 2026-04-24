@@ -5,6 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Objetivo 500 — Panel de Padres</title>
   <link rel="stylesheet" href="styles.css" />
+  <!-- Tailwind Play CDN — prototipo -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'aura-bg':      '#0A0A0F',
+            'aura-surface': '#111118',
+            'aura-border':  '#1E1E2E',
+            'aura-violet':  '#7C3AED',
+            'aura-green':   '#10B981',
+            'aura-text':    '#F1F5F9',
+            'aura-muted':   '#94A3B8',
+          },
+          minHeight: { 'touch': '44px' },
+        }
+      }
+    }
+  </script>
   <style>
     .child-card {
       display: grid;
@@ -58,8 +78,8 @@
     </div>
   </nav>
 
-  <main style="max-width:960px;margin:0 auto;padding:var(--space-6) var(--space-4) var(--space-16);
-               display:grid;grid-template-columns:280px 1fr;gap:var(--space-6);align-items:start">
+  <main class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6 items-start"
+        style="max-width:960px;margin:0 auto;padding:var(--space-6) var(--space-4) var(--space-16)">
 
     <!-- Columna izquierda: lista de hijos -->
     <aside>
