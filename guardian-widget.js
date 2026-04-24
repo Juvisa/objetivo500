@@ -1,20 +1,57 @@
 // guardian-widget.js — Widget del Guardián para el Dashboard
-// Inyecta el card del guardián en el elemento con id indicado.
-// Requiere: supabase, Guardian (globals), y showToast (de app.js).
+// Requiere: supabase, Guardian (globals), showToast (app.js), AudioEvents (audio-events.js)
 
 'use strict';
 
 window.GuardianWidget = (() => {
 
-  let _userId = null;
+  let _userId      = null;
+  let _containerId = null;
+  let _celebrateListenerSet = false;
 
-  /**
-   * Inicializa el widget: carga datos, aplica decaimiento y renderiza.
-   * @param {string} userId - UUID del usuario autenticado
-   * @param {string} containerId - ID del elemento DOM donde inyectar
-   */
+  // ── Animación del avatar por clase CSS ───────────────────────
+  function _animateAvatar(className, durationMs) {
+    const container = _containerId ? document.getElementById(_containerId) : null;
+    const wrap = container?.querySelector('.gw-avatar-wrap');
+    if (!wrap) return;
+    wrap.classList.remove('gw-anim-celebrate', 'gw-anim-gain', 'gw-anim-shake');
+    // forzar reflow para reiniciar la animación si ya estaba activa
+    void wrap.offsetWidth;
+    wrap.classList.add(className);
+    setTimeout(() => wrap.classList.remove(className), durationMs);
+  }
+
+  // ── Listener único para aura:guardianCelebrate ────────────────
+  function _registerCelebrateListener() {
+    if (_celebrateListenerSet) return;
+    document.addEventListener('aura:guardianCelebrate', () => {
+      _animateAvatar('gw-anim-celebrate', 1400);
+      // El sonido levelUp ya fue disparado por AudioEvents.onLevelUp antes de este evento
+    });
+    _celebrateListenerSet = true;
+  }
+
+  // ── API pública: energía ganada ───────────────────────────────
+  // Llamar desde endSession() con el delta de energía real
+  function gainEnergy(amount = 8) {
+    _animateAvatar('gw-anim-gain', 900);
+    if (window.AudioEvents) AudioEvents.onGuardianEnergyGain(amount);
+  }
+
+  // ── API pública: energía perdida ──────────────────────────────
+  // Llamar desde SafeExit.confirm() cuando el guardián pierde energía
+  function loseEnergy() {
+    _animateAvatar('gw-anim-shake', 700);
+    if (window.AudioEngine) AudioEngine.play('dullThud');
+  }
+
+  // ── Inicialización ─────────────────────────────────────────────
   async function init(userId, containerId) {
-    _userId = userId;
+    _userId      = userId;
+    _containerId = containerId;
+
+    _registerCelebrateListener();
+
     const container = document.getElementById(containerId);
     if (!container) return;
 
@@ -30,11 +67,9 @@ window.GuardianWidget = (() => {
       </div>`;
 
     let g = await Guardian.get(userId);
-    if (!g) return; // usuario sin guardián → guardian-selector lo manejará
+    if (!g) return;
 
-    // Aplicar decaimiento acumulado desde la última visita
     g = await Guardian.aplicarDecaimiento(g);
-
     _render(container, g);
 
     // Toast de advertencia si energía crítica
@@ -47,45 +82,39 @@ window.GuardianWidget = (() => {
         'error'
       );
     }
+
+    // Arrancar ambiente sonoro — fade-in a 10-15% de volumen
+    // Se llama aquí porque init() ocurre una sola vez al entrar al dashboard
+    if (window.AudioEvents) AudioEvents.startGuardianAmbient();
   }
 
-  /**
-   * Refresca el widget con los datos más recientes (llamar tras alimentar).
-   * @param {string} containerId
-   */
+  // ── Refresco tras alimentar ────────────────────────────────────
   async function refresh(containerId) {
     if (!_userId) return;
-    const container = document.getElementById(containerId);
+    const container = document.getElementById(containerId ?? _containerId);
     if (!container) return;
     const g = await Guardian.get(_userId);
     if (g) _render(container, g);
   }
 
-  /**
-   * Renderiza el HTML del widget en el contenedor dado.
-   * @param {HTMLElement} container
-   * @param {Object} g - datos del guardián
-   */
+  // ── Render del HTML del widget ─────────────────────────────────
   function _render(container, g) {
-    const config   = Guardian.getConfig(g.tipo_guardian);
-    const imgSrc   = Guardian.getImagen(g.tipo_guardian, g.nivel_evolucion);
+    const config    = Guardian.getConfig(g.tipo_guardian);
+    const imgSrc    = Guardian.getImagen(g.tipo_guardian, g.nivel_evolucion);
     const evoActual = Guardian.EVOLUCIONES.find(e => e.nivel === g.nivel_evolucion) ?? Guardian.EVOLUCIONES[0];
-    const evoSig   = Guardian.EVOLUCIONES.find(e => e.nivel === g.nivel_evolucion + 1);
+    const evoSig    = Guardian.EVOLUCIONES.find(e => e.nivel === g.nivel_evolucion + 1);
 
-    // Porcentaje de progreso hacia siguiente evolución
     const xpPct = evoSig
       ? Math.min(100, Math.round(((g.xp_total - evoActual.xp) / (evoSig.xp - evoActual.xp)) * 100))
       : 100;
 
-    // Color de la barra de energía según nivel
     const energiaColor =
       g.nivel_energia <= 25 ? '#EF4444' :
       g.nivel_energia <= 50 ? '#F59E0B' :
       g.nivel_energia <= 75 ? '#EAB308' : '#10B981';
 
-    // Estilos y clases según estado
-    const avatarStyle  = g.estado === 'petrificado' ? 'filter:grayscale(100%) sepia(50%)' : '';
-    const pulsClass    = g.estado === 'critico' ? 'gw-avatar--pulse' : '';
+    const avatarStyle = g.estado === 'petrificado' ? 'filter:grayscale(100%) sepia(50%)' : '';
+    const pulsClass   = g.estado === 'critico' ? 'gw-avatar--pulse' : '';
 
     const estadoTexto = {
       activo:      `⚡ ${config.nombre} está lleno de energía`,
@@ -175,6 +204,6 @@ window.GuardianWidget = (() => {
       </div>`;
   }
 
-  return { init, refresh };
+  return { init, refresh, gainEnergy, loseEnergy };
 
 })();

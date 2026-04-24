@@ -1412,3 +1412,94 @@ h5 { font-size: .9rem;   font-weight: 600; }
 .draft-banner-icon { font-size: 1.1rem; flex-shrink: 0; }
 .draft-banner-text { flex: 1; min-width: 200px; }
 .draft-banner-actions { display: flex; gap: var(--space-2); flex-shrink: 0; }
+
+/* ═══════════════════════════════════════════════════════════════
+   AUDIO TOGGLE — botón mute/unmute en el header
+   ═══════════════════════════════════════════════════════════════ */
+.audio-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--accent-blue, #38bdf8);
+  font-size: .85rem;
+  cursor: pointer;
+  transition: color .15s, border-color .15s, transform .15s, opacity .15s;
+  line-height: 1;
+}
+.audio-toggle:hover {
+  border-color: var(--accent-blue, #38bdf8);
+  transform: scale(1.08);
+}
+.audio-toggle:active {
+  transform: scale(.96);
+}
+/* Estado silenciado */
+.audio-toggle[aria-pressed="true"] {
+  color: var(--text-muted);
+  border-color: var(--border);
+  opacity: .55;
+}
+.audio-toggle[aria-pressed="true"]:hover {
+  opacity: .8;
+  border-color: var(--text-muted);
+}
+.audio-toggle__icon {
+  font-size: .95rem;
+  line-height: 1;
+}
+/* Etiqueta "Sonido" — solo visible en pantallas anchas */
+.audio-toggle__label {
+  font-size: .7rem;
+  font-weight: 500;
+  letter-spacing: .02em;
+}
+@media (max-width: 600px) {
+  .audio-toggle__label { display: none; }
+  .audio-toggle { padding: 4px 6px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GUARDIAN WIDGET — Animaciones de feedback de energía
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Celebración al subir de nivel: salta y brilla dorado */
+@keyframes gwCelebrate {
+  0%   { transform: scale(1) translateY(0);     filter: none; }
+  20%  { transform: scale(1.18) translateY(-10px); filter: drop-shadow(0 0 14px #FBBF24) brightness(1.25); }
+  45%  { transform: scale(1.12) translateY(-6px);  filter: drop-shadow(0 0 22px #F59E0B) brightness(1.35); }
+  65%  { transform: scale(1.15) translateY(-8px);  filter: drop-shadow(0 0 18px #FBBF24) brightness(1.28); }
+  85%  { transform: scale(1.05) translateY(-2px);  filter: drop-shadow(0 0 8px #FBBF24); }
+  100% { transform: scale(1) translateY(0);     filter: none; }
+}
+.gw-anim-celebrate {
+  animation: gwCelebrate 1.4s cubic-bezier(.22, 1, .36, 1) forwards;
+}
+
+/* Energía ganada: destello verde/azul */
+@keyframes gwEnergyGain {
+  0%   { filter: none; }
+  30%  { filter: brightness(1.25) drop-shadow(0 0 12px #10B981); }
+  60%  { filter: brightness(1.15) drop-shadow(0 0 18px #38BDF8); }
+  100% { filter: none; }
+}
+.gw-anim-gain {
+  animation: gwEnergyGain 0.9s ease-out forwards;
+}
+
+/* Energía perdida: temblor rojo */
+@keyframes gwShake {
+  0%   { transform: translateX(0);     filter: none; }
+  18%  { transform: translateX(-7px);  filter: drop-shadow(0 0 8px #EF4444); }
+  36%  { transform: translateX(7px);   filter: drop-shadow(0 0 8px #EF4444); }
+  54%  { transform: translateX(-5px);  filter: drop-shadow(0 0 4px #EF4444); }
+  72%  { transform: translateX(4px);   filter: none; }
+  90%  { transform: translateX(-2px);  }
+  100% { transform: translateX(0);     filter: none; }
+}
+.gw-anim-shake {
+  animation: gwShake 0.7s cubic-bezier(.36, .07, .19, .97) forwards;
+}

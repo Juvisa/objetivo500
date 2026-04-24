@@ -68,6 +68,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderDashboard();
   setupRealtime();
 
+  // Activar click sounds globales (lazy — AudioContext se crea al primer click)
+  if (window.AudioEvents) AudioEvents.initClickSounds();
+
   // Iniciar widget del guardián en el dashboard
   if (STATE.guardianUserId) {
     GuardianWidget.init(STATE.guardianUserId, 'guardian-widget-container');
@@ -184,6 +187,18 @@ function renderHeader() {
     </div>
 
     <div style="display:flex;align-items:center;gap:8px">
+      <button
+        id="audio-toggle"
+        class="audio-toggle"
+        onclick="toggleAudioMute(this)"
+        aria-label="Alternar sonido"
+        aria-pressed="${localStorage.getItem('aura_audio_muted') === 'true'}"
+        title="${localStorage.getItem('aura_audio_muted') === 'true' ? 'Activar sonido' : 'Silenciar efectos'}"
+        data-no-sound
+      >
+        <span class="audio-toggle__icon" aria-hidden="true">${localStorage.getItem('aura_audio_muted') === 'true' ? '🔇' : '🔊'}</span>
+        <span class="audio-toggle__label">Sonido</span>
+      </button>
       <img
         class="avatar avatar--sm"
         src="${STATE.profile.avatar_url || `https://api.dicebear.com/8.x/thumbs/svg?seed=${STATE.profile.username}`}"
@@ -594,6 +609,7 @@ window.startSession = async function(n, subject, weakOnly = false) {
   clearTimer();
   if (window.SafeExit)            SafeExit.destroy();
   if (window.SessionPersistence)  SessionPersistence.stopAutoSave();
+  if (window.AudioEvents)         AudioEvents.stopGuardianAmbient();
 
   const secsForSubject = SECS_PER_Q_BY_SUBJECT[subject] ?? SECS_PER_Q;
   STATE.session = {
@@ -764,13 +780,21 @@ async function confirmAnswer(selectedIndex) {
   const q          = STATE.session.questions[STATE.session.currentIdx];
   const timeUsed   = (STATE.session.secsPerQ ?? SECS_PER_Q) - STATE.session.timerLeft;
 
+  const isCorrect = selectedIndex === q.correct_index;
+
   // Guardar en estado local inmediatamente
   STATE.session.answers[q.id] = {
     selected_index: selectedIndex,
-    is_correct:     selectedIndex === q.correct_index,
+    is_correct:     isCorrect,
     time_seconds:   timeUsed,
   };
   saveSessionToStorage();
+
+  // Retroalimentación sonora inmediata (no espera al servidor)
+  if (window.AudioEvents) {
+    if (isCorrect) AudioEvents.onAnswerCorrect();
+    else           AudioEvents.onAnswerWrong();
+  }
 
   try {
     // Llamar a la función SQL que procesa todo (respuesta + XP + racha + badges)
@@ -870,13 +894,18 @@ async function endSession() {
   // Alimentar al guardián con los resultados de la sesión
   if (STATE.guardianUserId && window.Guardian) {
     try {
-      const racha   = computeRachaConsecutiva();
-      const result  = await Guardian.alimentar(STATE.guardianUserId, {
+      const racha        = computeRachaConsecutiva();
+      const energiaDelta = correct * 8 + (racha >= 10 ? 20 : 0);
+      const result       = await Guardian.alimentar(STATE.guardianUserId, {
         correctas:        correct,
         rachaConsecutiva: racha,
       });
       if (result?.nivelSubio) {
         Guardian.mostrarEvolucion(result.guardian, result.nivelAntes, result.nivelAhora);
+        if (window.AudioEvents) AudioEvents.onLevelUp(result.nivelAhora);
+      }
+      if (window.GuardianWidget && energiaDelta > 0) {
+        GuardianWidget.gainEnergy(energiaDelta);
       }
     } catch (e) { console.error('[Guardian] alimentar:', e); }
   }
@@ -1325,6 +1354,7 @@ async function startSessionByTopic(subject, topic) {
 
   if (window.SafeExit)           SafeExit.destroy();
   if (window.SessionPersistence) SessionPersistence.stopAutoSave();
+  if (window.AudioEvents)        AudioEvents.stopGuardianAmbient();
 
   const topicSecs = SECS_PER_Q_BY_SUBJECT[subject] ?? SECS_PER_Q;
   STATE.session = {

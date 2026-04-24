@@ -82,7 +82,13 @@
   <script src="lib/safe-exit.js"></script>
   <script src="lib/session-persistence.js"></script>
 
-  <!-- app.js como script normal (sin type="module") -->
+  <!-- Sistema de Audio — defer preserva el orden y no bloquea el parser -->
+  <script defer src="lib/audio-synth.js"></script>
+  <script defer src="lib/audio-config.js"></script>
+  <script defer src="lib/audio-engine.js"></script>
+  <script defer src="lib/audio-events.js"></script>
+
+  <!-- app.js: carga después de todos los defer anteriores (orden garantizado) -->
   <script defer src="app.js"></script>
 </body>
 </html>
