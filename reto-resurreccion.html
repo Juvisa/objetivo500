@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reto de Resurrección — Objetivo 500</title>
   <link rel="stylesheet" href="styles.css" />
+  <!-- KaTeX — renderizado LaTeX para fórmulas en preguntas -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
   <style>
     /* ── Layout principal ─────────────────────────────────────── */
     #rr-root {
@@ -97,6 +101,61 @@
       to   { transform: translateY(-12px); }
     }
     @keyframes pulse { from { opacity: .7; } to { opacity: 1; } }
+
+    /* ── Botones de respuesta ────────────────────────────────── */
+    .answer-btn {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      width: 100%;
+      padding: var(--space-3) var(--space-4);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      color: var(--text-primary);
+      font-size: .95rem;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color .18s, background .18s;
+    }
+    .answer-btn:hover:not(:disabled) {
+      border-color: var(--accent-purple-light);
+      background: var(--bg-overlay);
+    }
+    .answer-btn:disabled { cursor: default; }
+
+    .answer-btn__letter {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--bg-overlay);
+      border: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: .78rem;
+      color: var(--text-secondary);
+    }
+    .answer-btn--correct {
+      border-color: var(--accent-green);
+      background: var(--accent-green-dim);
+    }
+    .answer-btn--correct .answer-btn__letter {
+      background: var(--accent-green);
+      border-color: var(--accent-green);
+      color: #000;
+    }
+    .answer-btn--wrong {
+      border-color: var(--error);
+      background: rgba(239,68,68,.12);
+    }
+    .answer-btn--wrong .answer-btn__letter {
+      background: var(--error);
+      border-color: var(--error);
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -139,6 +198,8 @@
       setTimeout(() => t.remove(), 5000);
     }
   </script>
+  <script src="lib/resurrection.js"></script>
+  <script defer src="lib/question-renderer.js"></script>
   <script src="guardian.js"></script>
   <script>
     'use strict';
@@ -226,33 +287,20 @@
           <p>Cargando preguntas del reto…</p>
         </div>`;
 
-      // Obtener 15 preguntas aleatorias del banco
-      const { data, error } = await supabase
-        .rpc('get_session_questions', {
-          p_student_id: RETO.userId,
-          p_n:          15,
-          p_subject:    null,
-        });
+      // ResurrectionQueue garantiza unicidad y shuffle sin duplicados.
+      const preguntas = window.ResurrectionQueue
+        ? await ResurrectionQueue.buildQueue(RETO.userId, 15, [])
+        : [];
 
-      if (error || !data || data.length === 0) {
-        // Fallback: obtener preguntas directamente si el RPC falla
-        const { data: fallback } = await supabase
-          .from('questions')
-          .select('*')
-          .limit(15);
-
-        if (!fallback || fallback.length === 0) {
-          showToast('Sin preguntas', 'No se encontraron preguntas. Intenta más tarde.', '⚠️', 'error');
-          setTimeout(() => { window.location.href = './app.html'; }, 3000);
-          return;
-        }
-        RETO.preguntas = fallback;
-      } else {
-        RETO.preguntas = data;
+      if (preguntas.length === 0) {
+        showToast('Sin preguntas', 'No se encontraron preguntas. Intenta más tarde.', '⚠️', 'error');
+        setTimeout(() => { window.location.href = './app.html'; }, 3000);
+        return;
       }
 
-      RETO.idx       = 0;
-      RETO.racha     = 0;
+      RETO.preguntas  = preguntas;
+      RETO.idx        = 0;
+      RETO.racha      = 0;
       RETO.respondido = false;
       renderPregunta();
     }
@@ -379,9 +427,32 @@
     }
 
     // ── Siguiente pregunta ────────────────────────────────────────
-    function siguientePregunta() {
+    async function siguientePregunta() {
       RETO.idx++;
-      if (RETO.idx >= RETO.preguntas.length) RETO.idx = 0; // cicla si se acaban
+
+      if (RETO.idx >= RETO.preguntas.length) {
+        // Pool agotado — cargar nuevas excluyendo las ya vistas para evitar duplicados.
+        const vistas = RETO.preguntas.map(q => q.id);
+        const root = document.getElementById('rr-root');
+        root.innerHTML = `
+          <div class="empty-state" style="padding-top:80px">
+            <div style="font-size:2rem;margin-bottom:16px">⏳</div>
+            <p>Cargando más preguntas…</p>
+          </div>`;
+
+        const nuevas = window.ResurrectionQueue
+          ? await ResurrectionQueue.buildQueue(RETO.userId, 15, vistas)
+          : [];
+
+        if (nuevas.length > 0) {
+          RETO.preguntas = nuevas;
+          RETO.idx = 0;
+        } else {
+          // Banco agotado — reutilizar el lote actual (caso extremo con banco muy pequeño)
+          RETO.idx = 0;
+        }
+      }
+
       renderPregunta();
     }
 
