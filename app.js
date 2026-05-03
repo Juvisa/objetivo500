@@ -783,6 +783,15 @@ window.selectOption = async function(index) {
   const q = STATE.session.questions[STATE.session.currentIdx];
   if (!q) return;
 
+  // Verificar límite de plan antes de registrar la respuesta
+  if (window.Plans && STATE.student) {
+    const allowed = await Plans.canDo(STATE.student.id, 'answer_question');
+    if (!allowed) {
+      Plans.showPaywall('answer_question');
+      return;
+    }
+  }
+
   // Mostrar selección visual y confirmar automáticamente
   document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
   const optEl = document.getElementById(`opt-${index}`);
