@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Objetivo 500 — Estudiar</title>
   <link rel="stylesheet" href="styles.css" />
+  <!-- KaTeX — renderizado LaTeX 10× más rápido que MathJax, funciona offline -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
   <!-- Tailwind Play CDN — prototipo; reemplazar por build para producción -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -105,6 +109,15 @@
   <!-- Safe Exit + Session Persistence -->
   <script src="lib/safe-exit.js"></script>
   <script src="lib/session-persistence.js"></script>
+
+  <!-- Answer Lock — cerrojo contra exploit de vida infinita -->
+  <script src="lib/answer-lock.js"></script>
+
+  <!-- Content Quality — reporte de preguntas con error -->
+  <script src="lib/content-quality.js"></script>
+
+  <!-- Question Renderer — LaTeX + bloques pedagógicos -->
+  <script defer src="lib/question-renderer.js"></script>
 
   <!-- Sistema de Audio — defer preserva el orden y no bloquea el parser -->
   <script defer src="lib/audio-synth.js"></script>

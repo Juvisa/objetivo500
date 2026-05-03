@@ -623,6 +623,7 @@ window.startSession = async function(n, subject, weakOnly = false) {
   if (window.SessionPersistence)  SessionPersistence.stopAutoSave();
   if (window.AudioEvents)         AudioEvents.stopGuardianAmbient();
   if (window.BottomNav)           BottomNav.hide();
+  if (window.AnswerLock)          AnswerLock.clearAll();
 
   const secsForSubject = SECS_PER_Q_BY_SUBJECT[subject] ?? SECS_PER_Q;
   STATE.session = {
@@ -685,9 +686,10 @@ function renderQuestion() {
     <div style="padding:var(--space-4) var(--space-6) 0">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2)">
         <span style="font-size:.8rem;color:var(--text-muted)">Pregunta ${currentIdx + 1} de ${n}</span>
-        <div style="display:flex;gap:var(--space-2)">
+        <div style="display:flex;gap:var(--space-2);align-items:center">
           <span class="tag tag--${q.difficulty === 1 ? 'baja' : q.difficulty === 2 ? 'media' : 'alta'}">${q.difficulty === 1 ? 'Básica' : q.difficulty === 2 ? 'Media' : 'Alta'}</span>
           <span class="tag tag--purple">${SUBJECTS[q.subject] ?? q.subject}</span>
+          ${window.ContentQuality ? ContentQuality.reportButtonHTML(q.id, STATE.student.id) : ''}
         </div>
       </div>
       <div style="height:4px;background:var(--bg-overlay);border-radius:var(--radius-full);overflow:hidden">
@@ -725,11 +727,14 @@ function renderQuestion() {
       </ul>
 
       ${solved ? `
-        <div class="explanation-card" id="explanation-card">
-          <div class="explanation-title">💡 Explicación pedagógica</div>
-          <p class="explanation-text">${escapeHtml(q.explanation)}</p>
-          ${q.concept_key ? `<p style="margin-top:8px;font-size:.75rem;color:var(--text-muted)">Concepto clave: <strong>${escapeHtml(q.concept_key)}</strong></p>` : ''}
-        </div>
+        ${window.QuestionRenderer
+            ? QuestionRenderer.renderExplanation(q, !!STATE.session.answers[q.id]?.is_correct)
+            : `<div class="explanation-block" id="explanation-block">
+                 <div class="explanation-section">
+                   <p class="explanation-label">🧠 CONCEPTO CLAVE</p>
+                   <p class="explanation-text">${escapeHtml(q.explanation ?? '')}</p>
+                 </div>
+               </div>`}
         ${!STATE.session.answers[q.id]?.is_correct ? `
         <div style="margin-top:var(--space-3)">
           <button class="btn btn--hack" id="hack-btn"
@@ -762,6 +767,11 @@ function renderQuestion() {
 
   // Safe Exit: inyectar/actualizar botón en cada render de pregunta
   if (window.SafeExit) SafeExit.init();
+
+  // Renderizar fórmulas LaTeX en toda la tarjeta de pregunta (stem, opciones, explicación)
+  if (window.QuestionRenderer) {
+    QuestionRenderer.renderLatexInElement(document.getElementById('question-card'));
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -791,16 +801,41 @@ async function confirmAnswer(selectedIndex) {
   clearTimer();
 
   const q          = STATE.session.questions[STATE.session.currentIdx];
+  if (!q) return;
+
+  // ── CERROJO ANTI-EXPLOIT ──────────────────────────────────────────
+  // Blinda contra: doble-tap (race condition), back-navigation, recarga.
+  // Verificar cerrojo en memoria (sin red — instantáneo).
+  if (window.AnswerLock && AnswerLock.isLocked(q.id)) {
+    showAlreadyAnsweredState(q.id);
+    return;
+  }
+  // Fallback: STATE.session.answers actúa como segunda línea de defensa.
+  if (STATE.session.answers[q.id]) {
+    showAlreadyAnsweredState(q.id);
+    return;
+  }
+  // ─────────────────────────────────────────────────────────────────
+
   const timeUsed   = (STATE.session.secsPerQ ?? SECS_PER_Q) - STATE.session.timerLeft;
 
   const isCorrect = selectedIndex === q.correct_index;
 
-  // Guardar en estado local inmediatamente
+  // Guardar en estado local ANTES del await — primera barrera contra race condition.
   STATE.session.answers[q.id] = {
     selected_index: selectedIndex,
     is_correct:     isCorrect,
     time_seconds:   timeUsed,
   };
+
+  // Activar cerrojo en memoria ANTES de la llamada de red.
+  if (window.AnswerLock) {
+    AnswerLock.lock(q.id, { selectedOption: selectedIndex, isCorrect, xpAwarded: 0 });
+  }
+
+  // Deshabilitar botón Anterior — no se puede retroceder tras confirmar.
+  _disableBackButton();
+
   saveSessionToStorage();
 
   // Retroalimentación sonora inmediata (no espera al servidor)
@@ -847,6 +882,68 @@ async function confirmAnswer(selectedIndex) {
   // Re-renderizar la pregunta con la respuesta marcada
   renderQuestion();
 }
+
+// ── Helpers del cerrojo ──────────────────────────────────────────────
+
+function _disableBackButton() {
+  const btn = document.querySelector('[onclick="navigateQuestion(-1)"]');
+  if (!btn) return;
+  btn.disabled = true;
+  btn.classList.add('opacity-30');
+  btn.style.cursor = 'not-allowed';
+  btn.setAttribute('title', 'No puedes retroceder tras confirmar');
+}
+
+function showAlreadyAnsweredState(questionId) {
+  const result = window.AnswerLock ? AnswerLock.getResult(questionId)
+                                   : STATE.session.answers[questionId]
+                                     ? { selectedOption: STATE.session.answers[questionId].selected_index,
+                                         isCorrect:      STATE.session.answers[questionId].is_correct }
+                                     : null;
+
+  // Deshabilitar todas las opciones
+  document.querySelectorAll('.option-item').forEach(btn => {
+    btn.style.pointerEvents = 'none';
+    btn.style.opacity = '0.6';
+  });
+
+  // Resaltar la opción previamente seleccionada
+  if (result) {
+    const sel = document.getElementById(`opt-${result.selectedOption}`);
+    if (sel) {
+      sel.style.opacity = '1';
+      sel.classList.add(result.isCorrect ? 'correct' : 'incorrect');
+    }
+  }
+
+  showLockedBanner();
+}
+
+function showLockedBanner() {
+  if (document.getElementById('locked-banner')) return;
+  const banner = document.createElement('div');
+  banner.id = 'locked-banner';
+  banner.style.cssText = [
+    'position:fixed', 'top:72px', 'left:50%', 'transform:translateX(-50%)',
+    'z-index:var(--z-sticky)', 'background:var(--bg-card)',
+    'border:1px solid var(--border)', 'border-radius:var(--radius-lg)',
+    'padding:8px 16px', 'font-size:.75rem', 'color:var(--text-muted)',
+    'display:flex', 'align-items:center', 'gap:8px', 'white-space:nowrap',
+  ].join(';');
+  banner.innerHTML = `<span style="color:var(--color-success)">✓</span> Esta pregunta ya fue respondida en esta sesión`;
+  document.body.appendChild(banner);
+  setTimeout(() => banner.remove(), 3000);
+}
+
+// Evitar que el botón Atrás del navegador permita re-responder una pregunta bloqueada.
+window.addEventListener('popstate', (e) => {
+  if (!STATE.session?.questions?.length) return;
+  const prevId = e.state?.questionId;
+  if (prevId && window.AnswerLock && AnswerLock.isLocked(prevId)) {
+    history.forward();
+    showLockedBanner();
+  }
+});
 
 function buildXpMessage(result) {
   const parts = [`+${result.xp_earned} XP ganados`];
@@ -1368,6 +1465,7 @@ async function startSessionByTopic(subject, topic) {
   if (window.SafeExit)           SafeExit.destroy();
   if (window.SessionPersistence) SessionPersistence.stopAutoSave();
   if (window.AudioEvents)        AudioEvents.stopGuardianAmbient();
+  if (window.AnswerLock)         AnswerLock.clearAll();
 
   const topicSecs = SECS_PER_Q_BY_SUBJECT[subject] ?? SECS_PER_Q;
   STATE.session = {
