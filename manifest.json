@@ -1,0 +1,55 @@
+{
+  "name":             "Objetivo 500 Aura",
+  "short_name":       "+500 AURA",
+  "description":      "Entrena para el ICFES Saber 11. Cuida a tu Guardián. Llega a 500.",
+  "start_url":        "/app.html?source=pwa",
+  "scope":            "/",
+  "display":          "standalone",
+  "orientation":      "portrait",
+  "background_color": "#0A0A0F",
+  "theme_color":      "#7C3AED",
+  "lang":             "es-CO",
+  "categories":       ["education", "games"],
+  "icons": [
+    { "src": "/icons/icon-72.png",          "sizes": "72x72",   "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-96.png",          "sizes": "96x96",   "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-128.png",         "sizes": "128x128", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-144.png",         "sizes": "144x144", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-152.png",         "sizes": "152x152", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-192.png",         "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-384.png",         "sizes": "384x384", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png",         "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512-maskable.png","sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    {
+      "src":         "/screenshots/dashboard-mobile.png",
+      "sizes":       "390x844",
+      "type":        "image/png",
+      "form_factor": "narrow",
+      "label":       "Dashboard del estudiante"
+    },
+    {
+      "src":         "/screenshots/pregunta-mobile.png",
+      "sizes":       "390x844",
+      "type":        "image/png",
+      "form_factor": "narrow",
+      "label":       "Sesión de entrenamiento ICFES"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name":       "Entrenar ahora",
+      "short_name": "Entrenar",
+      "url":        "/app.html?source=shortcut&mode=train",
+      "icons":      [{ "src": "/icons/shortcut-train.png", "sizes": "96x96" }]
+    },
+    {
+      "name":       "Ver mi Guardián",
+      "short_name": "Guardián",
+      "url":        "/guardian-selector.html?source=shortcut",
+      "icons":      [{ "src": "/icons/shortcut-guardian.png", "sizes": "96x96" }]
+    }
+  ],
+  "prefer_related_applications": false
+}

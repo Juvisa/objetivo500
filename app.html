@@ -2,8 +2,50 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Objetivo 500 — Estudiar</title>
+
+  <!-- PWA Core -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#7C3AED" />
+
+  <!-- Apple / Safari (iOS) -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="+500 AURA" />
+
+  <!-- Apple Touch Icons — orden descendente -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon-152.png" />
+  <link rel="apple-touch-icon" sizes="120x120" href="/icons/apple-touch-icon-120.png" />
+  <link rel="apple-touch-icon" sizes="76x76"   href="/icons/apple-touch-icon-76.png" />
+  <link rel="apple-touch-icon"                 href="/icons/apple-touch-icon-180.png" />
+
+  <!-- Apple Splash Screens -->
+  <link rel="apple-touch-startup-image" media="(device-width:390px) and (device-height:844px) and (-webkit-device-pixel-ratio:3)" href="/splash/splash-390x844.png" />
+  <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2)" href="/splash/splash-375x667.png" />
+  <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2)" href="/splash/splash-414x896.png" />
+
+  <!-- Microsoft Tiles -->
+  <meta name="msapplication-TileColor" content="#7C3AED" />
+  <meta name="msapplication-TileImage" content="/icons/icon-144.png" />
+
+  <!-- Open Graph -->
+  <meta property="og:title"       content="+500 AURA — Entrena para el ICFES" />
+  <meta property="og:description" content="Cuida a tu Guardián. Sube de rango. Llega a 500." />
+  <meta property="og:image"       content="/icons/icon-512.png" />
+  <meta property="og:type"        content="website" />
+
+  <!-- Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          .then(r => console.log('[AURA SW] Registrado:', r.scope))
+          .catch(e => console.error('[AURA SW] Error:', e));
+      });
+    }
+  </script>
   <link rel="stylesheet" href="styles.css" />
   <!-- KaTeX — renderizado LaTeX 10× más rápido que MathJax, funciona offline -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -145,6 +187,9 @@
 
   <!-- Bottom Nav — debe cargarse antes que app.js para que BottomNav esté disponible -->
   <script defer src="components/bottom-nav.js"></script>
+
+  <!-- PWA Install Banner — debe cargarse antes del defer final -->
+  <script defer src="components/pwa-install.js"></script>
 
   <!-- app.js: carga después de todos los defer anteriores (orden garantizado) -->
   <script defer src="app.js"></script>

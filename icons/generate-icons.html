@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Generador de Íconos PWA — +500 AURA</title>
+  <style>
+    body { font-family: sans-serif; background: #0A0A0F; color: #F1F5F9; padding: 24px; }
+    h1   { font-size: 1.4rem; margin-bottom: 8px; }
+    p    { color: #94A3B8; font-size: .88rem; margin-bottom: 24px; }
+    .grid { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 32px; }
+    .item { text-align: center; }
+    canvas { display: block; border-radius: 8px; margin-bottom: 6px; }
+    .dl { display: inline-block; background: #7C3AED; color: #fff; padding: 6px 12px;
+          border-radius: 6px; font-size: .78rem; text-decoration: none; cursor: pointer; border:none; }
+    .dl:hover { background: #6D28D9; }
+    button.all { background: #10B981; color: #fff; border: none; padding: 12px 24px;
+                 border-radius: 8px; font-size: 1rem; cursor: pointer; margin-bottom: 24px; }
+    button.all:hover { background: #059669; }
+  </style>
+</head>
+<body>
+  <h1>🎯 Generador de Íconos PWA — +500 AURA</h1>
+  <p>Abre este archivo en tu navegador. Los íconos se generan automáticamente.<br>
+     Haz clic en "Descargar todo" o descarga cada ícono individualmente.<br>
+     Guarda los archivos en la carpeta <code>saas/icons/</code>.</p>
+
+  <button class="all" id="dl-all">⬇ Descargar todos los íconos</button>
+  <div class="grid" id="icon-grid"></div>
+
+  <script>
+    const VIOLET = '#7C3AED';
+    const BG     = '#0A0A0F';
+
+    const ICONS = [
+      { name: 'icon-72.png',          size: 72,  maskable: false },
+      { name: 'icon-96.png',          size: 96,  maskable: false },
+      { name: 'icon-128.png',         size: 128, maskable: false },
+      { name: 'icon-144.png',         size: 144, maskable: false },
+      { name: 'icon-152.png',         size: 152, maskable: false },
+      { name: 'icon-192.png',         size: 192, maskable: false },
+      { name: 'icon-384.png',         size: 384, maskable: false },
+      { name: 'icon-512.png',         size: 512, maskable: false },
+      { name: 'icon-512-maskable.png',size: 512, maskable: true  },
+      { name: 'apple-touch-icon-180.png', size: 180, maskable: false },
+      { name: 'apple-touch-icon-152.png', size: 152, maskable: false },
+      { name: 'apple-touch-icon-120.png', size: 120, maskable: false },
+      { name: 'apple-touch-icon-76.png',  size: 76,  maskable: false },
+      { name: 'shortcut-train.png',   size: 96,  maskable: false, shortcut: 'train' },
+      { name: 'shortcut-guardian.png',size: 96,  maskable: false, shortcut: 'guardian' },
+    ];
+
+    function drawIcon(canvas, size, maskable, shortcut) {
+      const ctx  = canvas.getContext('2d');
+      const pad  = maskable ? size * 0.1 : 0;  // 10% safe zone para maskable
+      const r    = (size - pad * 2) / 2;
+
+      // Fondo
+      ctx.fillStyle = VIOLET;
+      ctx.fillRect(0, 0, size, size);
+
+      // Círculo interior oscuro (solo para "any")
+      if (!maskable) {
+        ctx.fillStyle = BG;
+        ctx.beginPath();
+        ctx.arc(size / 2, size / 2, r * 0.9, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Emoji
+      const emoji = shortcut === 'train' ? '⚡'
+                  : shortcut === 'guardian' ? '🦋'
+                  : '🎯';
+      const fontSize = Math.round(size * (maskable ? 0.45 : 0.5));
+      ctx.font      = `${fontSize}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(emoji, size / 2, size / 2 + fontSize * 0.06);
+    }
+
+    function makeCanvas(icon) {
+      const canvas  = document.createElement('canvas');
+      canvas.width  = icon.size;
+      canvas.height = icon.size;
+      drawIcon(canvas, icon.size, icon.maskable, icon.shortcut);
+      return canvas;
+    }
+
+    function downloadCanvas(canvas, filename) {
+      canvas.toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a   = document.createElement('a');
+        a.href = url; a.download = filename; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 500);
+      }, 'image/png');
+    }
+
+    const grid = document.getElementById('icon-grid');
+    const canvases = [];
+
+    ICONS.forEach(icon => {
+      const canvas = makeCanvas(icon);
+      const preview = document.createElement('canvas');
+      const previewSize = Math.min(icon.size, 96);
+      preview.width  = previewSize;
+      preview.height = previewSize;
+      preview.getContext('2d').drawImage(canvas, 0, 0, previewSize, previewSize);
+
+      const btn = document.createElement('button');
+      btn.className = 'dl';
+      btn.textContent = '⬇';
+      btn.onclick = () => downloadCanvas(canvas, icon.name);
+
+      const label = document.createElement('div');
+      label.textContent = icon.name;
+      label.style.cssText = 'font-size:.65rem;color:#94A3B8;margin-bottom:4px;word-break:break-all;max-width:96px';
+
+      const item = document.createElement('div');
+      item.className = 'item';
+      item.appendChild(preview);
+      item.appendChild(label);
+      item.appendChild(btn);
+      grid.appendChild(item);
+      canvases.push({ canvas, name: icon.name });
+    });
+
+    document.getElementById('dl-all').onclick = async () => {
+      for (let i = 0; i < canvases.length; i++) {
+        const { canvas, name } = canvases[i];
+        downloadCanvas(canvas, name);
+        // Pequeña pausa para que el navegador no bloquee las descargas
+        await new Promise(r => setTimeout(r, 300));
+      }
+    };
+  </script>
+</body>
+</html>
