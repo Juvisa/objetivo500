@@ -268,6 +268,11 @@ function renderDashboard() {
       </div>
     </section>
 
+    <!-- Predicción de puntaje por área -->
+    <section class="panel" id="score-prediction-panel" style="margin-top:var(--space-4)">
+      <div class="empty-state" style="padding:var(--space-4) 0"><p style="font-size:.85rem">Cargando predicción…</p></div>
+    </section>
+
     <!-- Selector de modo -->
     <section>
       <h2 style="margin-bottom:var(--space-4)">¿Qué practicamos hoy?</h2>
@@ -332,6 +337,7 @@ function renderDashboard() {
   loadAdaptivePlan();
   loadLeaderboard();
   loadFeed();
+  loadScorePrediction();
 
   // Re-iniciar widget del guardián (el container ya existe en el innerHTML)
   if (STATE.guardianUserId && window.GuardianWidget) {
@@ -520,6 +526,13 @@ async function loadLeaderboard() {
 
 // ══════════════════════════════════════════════════════════════
 //  FEED SOCIAL
+async function loadScorePrediction() {
+  const panel = document.getElementById('score-prediction-panel');
+  if (!panel || !STATE.student?.id || !window.ScorePredictor) return;
+  const prediction = await ScorePredictor.getLatest(STATE.student.id);
+  panel.innerHTML = ScorePredictor.widgetHTML(prediction);
+}
+
 // ══════════════════════════════════════════════════════════════
 async function loadFeed() {
   const container = document.getElementById('social-feed');
@@ -1027,6 +1040,11 @@ async function endSession() {
         GuardianWidget.gainEnergy(energiaDelta);
       }
     } catch (e) { console.error('[Guardian] alimentar:', e); }
+  }
+
+  // Recalcular predicción si hay suficientes respuestas (fire-and-forget)
+  if (window.ScorePredictor && STATE.student?.id && total >= 10) {
+    ScorePredictor.calculateAndSave(STATE.student.id).catch(() => {});
   }
 
   if (isPerfect && total >= 5) {
