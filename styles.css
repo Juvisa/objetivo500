@@ -1844,3 +1844,20 @@ h5 { font-size: .9rem;   font-weight: 600; }
   transition: color .15s;
 }
 .ec-edit-btn:hover { color: var(--text-primary); }
+
+/* ── Section 38: Certificates ─────────────────────────────────── */
+.cert-card {
+  display: flex; align-items: center; gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  transition: border-color .2s;
+}
+.cert-card:hover { border-color: var(--accent-purple); }
+.cert-card__icon  { font-size: 2.4rem; flex-shrink: 0; width: 48px; text-align: center; }
+.cert-card__body  { flex: 1; }
+.cert-card__title { font-weight: 700; font-size: .95rem; margin: 0 0 2px; }
+.cert-card__date  { font-size: .75rem; color: var(--text-muted); margin: 0 0 4px; }
+.cert-card__tier  { font-size: .68rem; font-weight: 700; letter-spacing: .06em; }
+.cert-card__dl    { flex-shrink: 0; }

@@ -315,6 +315,15 @@ function renderDashboard() {
       </div>
     </section>
 
+    <!-- Certificados -->
+    <section class="panel" style="margin-top:var(--space-6);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div>
+        <h3 style="margin:0 0 4px">🏅 Certificados</h3>
+        <p style="font-size:.8rem;color:var(--text-muted);margin:0" id="cert-count-label">Cargando…</p>
+      </div>
+      <a href="certificates.html" class="btn btn--ghost btn--sm">Ver todos →</a>
+    </section>
+
     <!-- Insignias -->
     <section class="panel" style="margin-top:var(--space-6)">
       <h3 style="margin-bottom:var(--space-4)">Mis insignias</h3>
@@ -348,6 +357,12 @@ function renderDashboard() {
   loadScorePrediction();
   if (window.ExamCalendar && STATE.student?.id) {
     ExamCalendar.renderWidget(STATE.student.id, 'exam-calendar-widget');
+  }
+  if (window.Certificates && STATE.student?.id) {
+    Certificates.getAll(STATE.student.id).then(certs => {
+      const el = document.getElementById('cert-count-label');
+      if (el) el.textContent = certs.length > 0 ? `${certs.length} obtenido${certs.length > 1 ? 's' : ''}` : 'Completa hitos para desbloquear';
+    });
   }
   if (window.Onboarding && STATE.student?.id) {
     Onboarding.renderBar(STATE.student.id, 'onboarding-bar');
@@ -1060,6 +1075,16 @@ async function endSession() {
   // Recalcular predicción si hay suficientes respuestas (fire-and-forget)
   if (window.ScorePredictor && STATE.student?.id && total >= 10) {
     ScorePredictor.calculateAndSave(STATE.student.id).catch(() => {});
+  }
+
+  // Evaluar y otorgar certificados nuevos (fire-and-forget)
+  if (window.Certificates && STATE.student?.id) {
+    Certificates.evaluate(STATE.student.id).then(newCerts => {
+      (newCerts ?? []).forEach(key => {
+        const [type, subject] = key.split(':');
+        Certificates.showNewCertToast(type, subject);
+      });
+    }).catch(() => {});
   }
 
   if (isPerfect && total >= 5) {
