@@ -241,6 +241,9 @@ function renderDashboard() {
   if (!root) return;
 
   root.innerHTML = `
+    <!-- Onboarding — oculto automáticamente cuando se completan los 5 pasos -->
+    <section id="onboarding-bar" class="ob-container" style="margin-bottom:var(--space-4)"></section>
+
     <!-- Guardián del Saber -->
     <section id="guardian-widget-container" style="margin-bottom:var(--space-4)"></section>
 
@@ -338,6 +341,9 @@ function renderDashboard() {
   loadLeaderboard();
   loadFeed();
   loadScorePrediction();
+  if (window.Onboarding && STATE.student?.id) {
+    Onboarding.renderBar(STATE.student.id, 'onboarding-bar');
+  }
 
   // Re-iniciar widget del guardián (el container ya existe en el innerHTML)
   if (STATE.guardianUserId && window.GuardianWidget) {
