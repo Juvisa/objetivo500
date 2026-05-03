@@ -368,6 +368,7 @@ function renderModeCards() {
     { id: 'simulacro',   emoji: '🏆', title: 'Simulacro rápido',  desc: '45 preguntas mixtas',    onclick: `startSession(45, null, false)` },
     { id: 'repaso',      emoji: '🔄', title: 'Repasar errores',   desc: 'Solo tus debilidades',   onclick: `startSession(15, null, true)` },
     { id: 'reto',        emoji: '⚡', title: 'Reto Temático',     desc: 'Ataca tu mayor debilidad', onclick: `showTopicChallengePicker()` },
+    { id: 'batalla',     emoji: '⚔️', title: 'Batalla 1v1',      desc: '+300 XP al ganador',       onclick: `window.location.href='battle.html?new=1&student='+STATE.student.id` },
   ];
 
   return modes.map(m => `

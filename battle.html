@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Batalla 1v1 — Objetivo 500</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .bt-answer-btn {
+      display: flex; align-items: center; gap: 12px;
+      width: 100%; padding: 14px 18px;
+      background: var(--bg-overlay);
+      border: 2px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      color: var(--text-primary);
+      font-size: .95rem; text-align: left;
+      cursor: pointer; transition: border-color .15s, background .15s;
+    }
+    .bt-answer-btn:hover:not(:disabled) { border-color: var(--accent-purple); background: var(--accent-purple-dim); }
+    .bt-answer-btn:disabled { cursor: default; opacity: .75; }
+    .bt-answer-btn--correct { border-color: var(--accent-green) !important; background: rgba(16,185,129,.15) !important; }
+    .bt-answer-btn--wrong   { border-color: var(--error) !important; background: rgba(239,68,68,.12) !important; }
+    .bt-letter { display:inline-flex; align-items:center; justify-content:center;
+      width:30px; height:30px; border-radius:50%; font-weight:700; font-size:.85rem;
+      background:var(--border); flex-shrink:0; }
+    .bt-score-bar { height: 8px; border-radius: 4px; background: var(--border); overflow: hidden; }
+    .bt-score-bar__fill { height:100%; border-radius:4px; transition:width .4s ease; }
+    .bt-timer { font-size: 1.5rem; font-weight: 900; font-variant-numeric: tabular-nums; transition: color .3s; }
+    .bt-vs-badge { display:flex; align-items:center; justify-content:center; gap:var(--space-4);
+      margin-bottom:var(--space-4); }
+    .bt-player { display:flex; flex-direction:column; align-items:center; gap:4px; }
+    .bt-player__name { font-size:.78rem; color:var(--text-muted); max-width:90px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    .bt-player__score { font-size:1.6rem; font-weight:900; }
+    .bt-vs { font-size:.9rem; color:var(--text-muted); font-weight:700; }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar__logo">
+      <div class="logo-icon" aria-hidden="true">⚔️</div>
+      Batalla 1v1
+    </div>
+    <div class="navbar__actions">
+      <button class="btn btn--ghost btn--sm" onclick="window.location.href='app.html'">← Salir</button>
+    </div>
+  </nav>
+
+  <main id="battle-root" style="max-width:640px;margin:0 auto;padding:var(--space-6) var(--space-4) var(--space-16)">
+    <div class="empty-state" style="padding-top:80px">
+      <div style="font-size:2rem;margin-bottom:16px">⏳</div>
+      <p>Cargando…</p>
+    </div>
+  </main>
+
+  <div id="toast-container" class="toast-container" aria-live="assertive" aria-atomic="false"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    var SUPABASE_URL      = 'https://bekvduhzoxufixykxphy.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJla3ZkdWh6b3h1Zml4eWt4cGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NzIwNjksImV4cCI6MjA5MjM0ODA2OX0.S_fSyBAJ1IS9E3H_W7I8vXwEhRqnczNAHa1S7kvKxvM';
+    var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true },
+    });
+
+    async function requireAuth(requiredRole = null) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = './login.html'; return null; }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { window.location.href = './login.html'; return null; }
+      const { data: profile } = await supabase
+        .from('profiles').select('*').eq('user_id', user.id).maybeSingle();
+      if (!profile) { window.location.href = './login.html'; return null; }
+      if (requiredRole && profile.role !== requiredRole) {
+        window.location.href = profile.role === 'parent' ? './dashboard-padre.html' : './app.html';
+        return null;
+      }
+      return profile;
+    }
+
+    function showToast(title, msg, icon, type) {
+      const c = document.getElementById('toast-container');
+      if (!c) return;
+      const t = document.createElement('div');
+      t.className = `toast toast--${type ?? 'info'}`;
+      t.innerHTML = `<span class="toast__icon">${icon ?? 'ℹ️'}</span><div><strong>${title}</strong>${msg ? '<br>' + msg : ''}</div>`;
+      c.appendChild(t);
+      setTimeout(() => t.remove(), 5000);
+    }
+  </script>
+
+  <script src="lib/battle.js"></script>
+
+  <script defer>
+    // ── Estado ───────────────────────────────────────────────────
+    const BS = {
+      profile:    null,
+      student:    null,
+      battleId:   null,
+      detail:     null,      // { battle, questions, my_answers }
+      currentIdx: 0,
+      timerLeft:  60,
+      timerHandle: null,
+      myScore:    0,
+      opScore:    0,
+    };
+
+    const params      = new URLSearchParams(location.search);
+    const isNew       = params.get('new') === '1';
+    const battleIdUrl = params.get('id');
+    const root        = document.getElementById('battle-root');
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      BS.profile = await requireAuth('student');
+      if (!BS.profile) return;
+
+      const { data: student } = await supabase
+        .from('students')
+        .select('id, xp_total')
+        .eq('profile_id', BS.profile.id)
+        .maybeSingle();
+      BS.student = student;
+
+      if (isNew)              return renderNewBattle();
+      if (battleIdUrl)        return loadAndRender(battleIdUrl);
+      renderMyBattles();
+    });
+
+    // ── Crear nueva batalla ───────────────────────────────────────
+    function renderNewBattle() {
+      const subjects = {
+        '': 'Mixta (todas las materias)',
+        lectura_critica: 'Lectura Crítica',
+        matematicas: 'Matemáticas',
+        sociales: 'Sociales y Ciudadanas',
+        ciencias_naturales: 'Ciencias Naturales',
+        ingles: 'Inglés',
+      };
+      const opts = Object.entries(subjects).map(([v, l]) =>
+        `<option value="${v}">${l}</option>`
+      ).join('');
+
+      root.innerHTML = `
+        <div class="panel" style="text-align:center;padding:var(--space-10) var(--space-6)">
+          <div style="font-size:3rem;margin-bottom:var(--space-3)">⚔️</div>
+          <h1 style="font-size:1.4rem;font-weight:800;margin-bottom:var(--space-2)">Nuevo Reto</h1>
+          <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:var(--space-6)">
+            Se generará un código para compartir con tu rival.
+          </p>
+          <div style="margin-bottom:var(--space-4);text-align:left">
+            <label style="font-size:.82rem;color:var(--text-muted);display:block;margin-bottom:6px">Materia</label>
+            <select id="subject-select"
+              style="width:100%;padding:10px 14px;background:var(--bg-overlay);border:1px solid var(--border-light);border-radius:var(--radius-md);color:var(--text-primary);font-size:.92rem">
+              ${opts}
+            </select>
+          </div>
+          <button id="create-btn" class="btn btn--primary" style="width:100%">Crear batalla</button>
+        </div>`;
+
+      document.getElementById('create-btn').onclick = async () => {
+        const btn     = document.getElementById('create-btn');
+        const subject = document.getElementById('subject-select').value || null;
+        btn.disabled  = true; btn.textContent = 'Creando…';
+        const battleId = await Battle.create(BS.student.id, subject);
+        if (!battleId) {
+          showToast('Error', 'No se pudo crear la batalla.', '❌', 'error');
+          btn.disabled = false; btn.textContent = 'Crear batalla';
+          return;
+        }
+        renderWaitingLobby(battleId);
+      };
+    }
+
+    // ── Sala de espera ────────────────────────────────────────────
+    function renderWaitingLobby(battleId) {
+      BS.battleId = battleId;
+      const shareUrl = `${location.origin}${location.pathname}?id=${battleId}`;
+
+      root.innerHTML = `
+        <div class="panel" style="text-align:center;padding:var(--space-10) var(--space-6)">
+          <div style="font-size:2.5rem;margin-bottom:var(--space-3)">🔗</div>
+          <h2 style="font-size:1.2rem;font-weight:800;margin-bottom:var(--space-2)">Esperando rival…</h2>
+          <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:var(--space-5)">
+            Comparte este código con quien quieras retar:
+          </p>
+          <div style="background:var(--bg-overlay);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:var(--space-4);margin-bottom:var(--space-4)">
+            <code id="battle-code" style="font-size:.78rem;word-break:break-all;color:var(--accent-purple-light)">${battleId}</code>
+          </div>
+          <button class="btn btn--ghost btn--sm" onclick="
+            navigator.clipboard?.writeText('${shareUrl}').catch(()=>{});
+            showToast('¡Copiado!','Comparte el link con tu rival.','📋','success');
+          " style="margin-bottom:var(--space-6)">📋 Copiar link</button>
+          <div id="waiting-dots" style="color:var(--text-muted);font-size:.88rem">⏳ Esperando…</div>
+        </div>`;
+
+      // Escuchar cuando el rival se une
+      Battle.subscribeToChanges(battleId, (payload) => {
+        if (payload.new?.status === 'active') {
+          loadAndRender(battleId);
+        }
+      });
+    }
+
+    // ── Cargar y renderizar batalla activa/completada ─────────────
+    async function loadAndRender(battleId) {
+      BS.battleId = battleId;
+      const data  = await Battle.getDetail(battleId, BS.student.id);
+      if (!data) {
+        root.innerHTML = `<div class="empty-state"><p>Batalla no encontrada.</p></div>`;
+        return;
+      }
+      BS.detail = data;
+
+      if (data.battle.status === 'pending') {
+        renderWaitingLobby(battleId);
+        return;
+      }
+      if (data.battle.status === 'completed') {
+        renderResult();
+        return;
+      }
+
+      // Encontrar primera pregunta sin respuesta
+      const answered = Object.keys(data.my_answers ?? {});
+      BS.currentIdx = data.questions.findIndex(q => !answered.includes(q.id));
+      if (BS.currentIdx === -1) {
+        // Yo ya terminé, esperar al rival
+        renderWaitingForOpponent();
+        Battle.subscribeToChanges(battleId, (p) => {
+          if (p.new?.status === 'completed') renderResult();
+        });
+        return;
+      }
+
+      renderQuestion();
+      // Escuchar si la batalla se completa mientras respondemos
+      Battle.subscribeToChanges(battleId, (p) => {
+        if (p.new?.status === 'completed') {
+          clearTimer();
+          BS.detail.battle = p.new;
+          renderResult();
+        }
+        // Actualizar score del oponente en tiempo real
+        if (p.new) _updateOpponentScore(p.new);
+      });
+    }
+
+    function _updateOpponentScore(newBattle) {
+      const isChallenger = BS.detail.battle.challenger_id === BS.student.id;
+      BS.opScore = isChallenger ? (newBattle.opponent_score ?? 0) : (newBattle.challenger_score ?? 0);
+      const el = document.getElementById('bt-op-score');
+      if (el) el.textContent = BS.opScore;
+    }
+
+    // ── Pregunta ──────────────────────────────────────────────────
+    function renderQuestion() {
+      const q          = BS.detail.questions[BS.currentIdx];
+      const total      = BS.detail.questions.length;
+      const letters    = ['A','B','C','D'];
+      const isChallenger = BS.detail.battle.challenger_id === BS.student.id;
+      BS.myScore = Object.values(BS.detail.my_answers ?? {}).filter(a => a.is_correct).length;
+      BS.opScore = isChallenger
+        ? (BS.detail.battle.opponent_score ?? 0)
+        : (BS.detail.battle.challenger_score ?? 0);
+
+      root.innerHTML = `
+        <div class="bt-vs-badge">
+          <div class="bt-player">
+            <div class="bt-player__score" style="color:var(--accent-purple-light)" id="bt-my-score">${BS.myScore}</div>
+            <div class="bt-player__name">Tú</div>
+          </div>
+          <div class="bt-vs">VS</div>
+          <div class="bt-player">
+            <div class="bt-player__score" style="color:var(--error)" id="bt-op-score">${BS.opScore}</div>
+            <div class="bt-player__name">Rival</div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-3)">
+          <span style="font-size:.78rem;color:var(--text-muted)">${BS.currentIdx + 1}/${total}</span>
+          <span class="bt-timer" id="bt-timer">${BS.timerLeft}</span>
+        </div>
+        <div class="bt-score-bar" style="margin-bottom:var(--space-5)">
+          <div class="bt-score-bar__fill" id="bt-progress"
+            style="width:${Math.round((BS.currentIdx / total) * 100)}%;background:var(--accent-purple)"></div>
+        </div>
+
+        <div class="panel" style="margin-bottom:var(--space-4)">
+          <p style="font-size:.78rem;color:var(--text-muted);margin-bottom:var(--space-3)">
+            ${q.subject?.replace(/_/g,' ')} · ${q.difficulty ?? ''}
+          </p>
+          ${q.context ? `<blockquote style="border-left:3px solid var(--border-light);padding-left:12px;color:var(--text-secondary);font-size:.88rem;margin:0 0 var(--space-4)">${q.context}</blockquote>` : ''}
+          <p style="font-size:1rem;line-height:1.6">${q.question_text}</p>
+        </div>
+
+        <div id="options-container" style="display:flex;flex-direction:column;gap:var(--space-2)">
+          ${q.options.map((opt, i) => `
+            <button class="bt-answer-btn" data-idx="${i}" onclick="selectBattleAnswer(${i})">
+              <span class="bt-letter">${letters[i]}</span>
+              <span>${opt}</span>
+            </button>`).join('')}
+        </div>`;
+
+      startTimer(q);
+    }
+
+    function startTimer(q) {
+      clearTimer();
+      BS.timerLeft = 60;
+      _updateTimerUI();
+      BS.timerHandle = setInterval(() => {
+        BS.timerLeft--;
+        _updateTimerUI();
+        if (BS.timerLeft <= 0) {
+          clearTimer();
+          selectBattleAnswer(-1); // sin respuesta
+        }
+      }, 1000);
+    }
+
+    function clearTimer() {
+      if (BS.timerHandle) { clearInterval(BS.timerHandle); BS.timerHandle = null; }
+    }
+
+    function _updateTimerUI() {
+      const el = document.getElementById('bt-timer');
+      if (!el) return;
+      el.textContent = BS.timerLeft;
+      el.style.color = BS.timerLeft <= 10 ? 'var(--error)' : BS.timerLeft <= 20 ? 'var(--warning)' : 'var(--text-primary)';
+    }
+
+    window.selectBattleAnswer = async function(answerIdx) {
+      clearTimer();
+      const q      = BS.detail.questions[BS.currentIdx];
+      const timeSec = 60 - BS.timerLeft;
+
+      // Deshabilitar botones
+      document.querySelectorAll('.bt-answer-btn').forEach(b => b.disabled = true);
+
+      const result = await Battle.submitAnswer(
+        BS.battleId, BS.student.id, q.id, answerIdx, timeSec
+      );
+
+      if (result) {
+        // Colorear respuesta
+        document.querySelectorAll('.bt-answer-btn').forEach((b, i) => {
+          if (i === result.correct_index) b.classList.add('bt-answer-btn--correct');
+          else if (i === answerIdx && !result.is_correct) b.classList.add('bt-answer-btn--wrong');
+        });
+        if (result.is_correct) {
+          BS.myScore++;
+          const el = document.getElementById('bt-my-score');
+          if (el) el.textContent = BS.myScore;
+        }
+      }
+
+      // Breve pausa para mostrar corrección antes de avanzar
+      await new Promise(r => setTimeout(r, 900));
+
+      BS.currentIdx++;
+      if (BS.currentIdx >= BS.detail.questions.length) {
+        renderWaitingForOpponent();
+        Battle.subscribeToChanges(BS.battleId, (p) => {
+          if (p.new?.status === 'completed') {
+            BS.detail.battle = p.new;
+            renderResult();
+          }
+        });
+      } else {
+        renderQuestion();
+      }
+    };
+
+    // ── Esperar al oponente ───────────────────────────────────────
+    function renderWaitingForOpponent() {
+      root.innerHTML = `
+        <div class="panel" style="text-align:center;padding:var(--space-10) var(--space-6)">
+          <div style="font-size:3rem;margin-bottom:var(--space-3)">⏳</div>
+          <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:var(--space-2)">¡Terminaste!</h2>
+          <p style="color:var(--text-muted)">Esperando que tu rival termine…</p>
+          <p style="color:var(--accent-purple-light);font-weight:700;font-size:1.3rem;margin-top:var(--space-4)">${BS.myScore} aciertos</p>
+        </div>`;
+    }
+
+    // ── Resultado final ───────────────────────────────────────────
+    function renderResult() {
+      const b           = BS.detail.battle;
+      const isChallenger = b.challenger_id === BS.student.id;
+      const myScore     = isChallenger ? b.challenger_score : b.opponent_score;
+      const opScore     = isChallenger ? b.opponent_score   : b.challenger_score;
+      const iWon        = b.winner_id === BS.student.id;
+      const isDraw      = !b.winner_id;
+
+      Battle.unsubscribe();
+
+      root.innerHTML = `
+        <div class="panel" style="text-align:center;padding:var(--space-10) var(--space-6)">
+          <div style="font-size:3.5rem;margin-bottom:var(--space-3)">
+            ${isDraw ? '🤝' : iWon ? '🏆' : '💀'}
+          </div>
+          <h1 style="font-size:1.5rem;font-weight:900;margin-bottom:var(--space-2)">
+            ${isDraw ? '¡Empate!' : iWon ? '¡Ganaste!' : 'Perdiste esta vez'}
+          </h1>
+          <p style="color:var(--text-muted);margin-bottom:var(--space-6)">
+            ${isDraw ? 'Ambos tuvieron el mismo puntaje.' : iWon ? '+300 XP agregados a tu cuenta 🎉' : '+50 XP por participar. ¡Sigue entrenando!'}
+          </p>
+
+          <div class="bt-vs-badge" style="justify-content:center;gap:var(--space-8);margin-bottom:var(--space-6)">
+            <div class="bt-player">
+              <div class="bt-player__score" style="color:var(--accent-purple-light);font-size:2.5rem">${myScore}</div>
+              <div class="bt-player__name">Tú</div>
+            </div>
+            <div class="bt-vs">VS</div>
+            <div class="bt-player">
+              <div class="bt-player__score" style="color:var(--error);font-size:2.5rem">${opScore}</div>
+              <div class="bt-player__name">Rival</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:var(--space-3);justify-content:center;flex-wrap:wrap">
+            <button class="btn btn--primary" onclick="renderNewBattle()">⚔️ Nuevo reto</button>
+            <button class="btn btn--ghost" onclick="window.location.href='app.html'">← Inicio</button>
+          </div>
+        </div>`;
+    }
+
+    // ── Historial de mis batallas ─────────────────────────────────
+    async function renderMyBattles() {
+      const battles = await Battle.getMyBattles(BS.student.id);
+
+      const rows = battles.length > 0 ? battles.map(b => {
+        const isChallenger = b.challenger_id === BS.student.id;
+        const myScore  = isChallenger ? b.challenger_score : b.opponent_score;
+        const opScore  = isChallenger ? b.opponent_score   : b.challenger_score;
+        const iWon     = b.winner_id === BS.student.id;
+        const statusMap = { pending: '⏳ Pendiente', active: '🔥 En curso', completed: iWon ? '🏆 Victoria' : b.winner_id ? '💀 Derrota' : '🤝 Empate', cancelled: '❌ Cancelada' };
+
+        return `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-3) 0;border-bottom:1px solid var(--border)">
+            <div>
+              <p style="font-size:.85rem;font-weight:600">${statusMap[b.status] ?? b.status}</p>
+              <p style="font-size:.72rem;color:var(--text-muted)">${new Date(b.created_at).toLocaleDateString('es-CO')}</p>
+            </div>
+            <div style="text-align:right">
+              ${b.status === 'completed'
+                ? `<p style="font-weight:700">${myScore} vs ${opScore}</p>`
+                : `<button class="btn btn--ghost btn--sm" onclick="loadAndRender('${b.id}')">Continuar →</button>`}
+            </div>
+          </div>`;
+      }).join('') : `<p style="color:var(--text-muted);font-size:.85rem">No has jugado ninguna batalla aún.</p>`;
+
+      root.innerHTML = `
+        <div style="text-align:center;margin-bottom:var(--space-6)">
+          <div style="font-size:3rem;margin-bottom:var(--space-2)">⚔️</div>
+          <h1 style="font-size:1.4rem;font-weight:800;margin-bottom:var(--space-2)">Batallas</h1>
+          <div style="display:flex;gap:var(--space-3);justify-content:center;margin-bottom:var(--space-6)">
+            <button class="btn btn--primary" onclick="renderNewBattle()">⚔️ Nuevo reto</button>
+            <button class="btn btn--ghost" onclick="Battle.showJoinPrompt('${BS.student.id}')">🔗 Unirme con código</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h3 style="margin-bottom:var(--space-3)">Mis batallas</h3>
+          ${rows}
+        </div>`;
+    }
+  </script>
+</body>
+</html>
