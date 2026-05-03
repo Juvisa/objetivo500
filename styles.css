@@ -1767,3 +1767,80 @@ h5 { font-size: .9rem;   font-weight: 600; }
 .ob-step__title { font-size: .88rem; font-weight: 600; margin-bottom: 2px; }
 .ob-step__sub   { font-size: .75rem; color: var(--text-muted); }
 .ob-step__xp    { font-size: .75rem; font-weight: 700; color: var(--accent-purple-light); flex-shrink: 0; }
+
+/* ── Section 37: Exam Calendar Widget ─────────────────────────── */
+.ec-widget {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  background: var(--bg-overlay);
+  transition: border-color .2s, background .2s;
+}
+.ec-widget--empty {
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.ec-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+.ec-countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 64px;
+}
+.ec-days {
+  font-size: 2.8rem;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ec-days-label {
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.ec-body { display: flex; flex-direction: column; gap: 4px; }
+.ec-title { font-size: .95rem; font-weight: 700; margin: 0; }
+.ec-sub   { font-size: .78rem; color: var(--text-muted); margin: 0; }
+.ec-tip   { font-size: .78rem; color: var(--text-secondary); margin: 0; font-style: italic; }
+.ec-hint  { font-size: .75rem; color: var(--text-muted); margin: 4px 0 0; }
+.ec-period {
+  font-size: .68rem;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  border: 1px solid currentColor;
+  opacity: .6;
+}
+.ec-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  margin-top: var(--space-2);
+  overflow: hidden;
+}
+.ec-bar__fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width .4s ease;
+}
+.ec-edit-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  align-self: flex-start;
+  transition: color .15s;
+}
+.ec-edit-btn:hover { color: var(--text-primary); }

@@ -271,6 +271,11 @@ function renderDashboard() {
       </div>
     </section>
 
+    <!-- Cuenta regresiva al examen -->
+    <section class="panel" id="exam-calendar-widget" style="margin-top:var(--space-4)">
+      <div class="empty-state" style="padding:var(--space-4) 0"><p style="font-size:.85rem">Cargando calendario…</p></div>
+    </section>
+
     <!-- Predicción de puntaje por área -->
     <section class="panel" id="score-prediction-panel" style="margin-top:var(--space-4)">
       <div class="empty-state" style="padding:var(--space-4) 0"><p style="font-size:.85rem">Cargando predicción…</p></div>
@@ -341,6 +346,9 @@ function renderDashboard() {
   loadLeaderboard();
   loadFeed();
   loadScorePrediction();
+  if (window.ExamCalendar && STATE.student?.id) {
+    ExamCalendar.renderWidget(STATE.student.id, 'exam-calendar-widget');
+  }
   if (window.Onboarding && STATE.student?.id) {
     Onboarding.renderBar(STATE.student.id, 'onboarding-bar');
   }
