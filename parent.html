@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal de Padres — Objetivo 500</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .report-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      margin-bottom: var(--space-4);
+    }
+    .report-card__week {
+      font-size: .72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: var(--space-3);
+    }
+    .report-stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .9rem;
+    }
+    .report-stat:last-child { border-bottom: none; }
+    .report-stat__label { color: var(--text-secondary); }
+    .report-stat__value { font-weight: 700; color: var(--text-primary); }
+    .score-up   { color: var(--accent-green-light); }
+    .score-down { color: var(--error); }
+    .weak-chip {
+      display: inline-block;
+      background: rgba(239,68,68,.1);
+      border: 1px solid rgba(239,68,68,.3);
+      border-radius: var(--radius-full);
+      padding: 2px 10px;
+      font-size: .75rem;
+      color: var(--error);
+      margin: 2px;
+    }
+  </style>
+</head>
+<body style="background:var(--bg-base);min-height:100vh">
+
+  <nav class="navbar">
+    <div class="navbar__logo">
+      <div class="logo-icon" aria-hidden="true">🎯</div>
+      Objetivo 500 — Padres
+    </div>
+    <div class="navbar__actions">
+      <button id="btn-logout" class="btn btn--ghost btn--sm" style="display:none">Cerrar sesión</button>
+    </div>
+  </nav>
+
+  <main style="max-width:640px;margin:0 auto;padding:var(--space-6) var(--space-4) var(--space-16)">
+    <div id="parent-root">
+      <div class="empty-state" style="padding-top:80px">
+        <div style="font-size:2rem;margin-bottom:16px">⏳</div>
+        <p>Cargando…</p>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast-container" class="toast-container" aria-live="assertive"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    var SUPABASE_URL      = 'https://bekvduhzoxufixykxphy.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJla3ZkdWh6b3h1Zml4eWt4cGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NzIwNjksImV4cCI6MjA5MjM0ODA2OX0.S_fSyBAJ1IS9E3H_W7I8vXwEhRqnczNAHa1S7kvKxvM';
+    var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true },
+    });
+
+    function showToast(msg, type) {
+      const c = document.getElementById('toast-container');
+      if (!c) return;
+      const t = document.createElement('div');
+      t.className = `toast toast--${type ?? 'info'}`;
+      t.innerHTML = `<span class="toast__icon">${type === 'error' ? '❌' : 'ℹ️'}</span><div>${msg}</div>`;
+      c.appendChild(t);
+      setTimeout(() => t.remove(), 5000);
+    }
+
+    // ── Bootstrap ─────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        renderLogin();
+        return;
+      }
+      document.getElementById('btn-logout').style.display = 'inline-flex';
+      await renderDashboard(session.user.id);
+    });
+
+    document.getElementById('btn-logout').onclick = async () => {
+      await supabase.auth.signOut();
+      location.reload();
+    };
+
+    // ── Login form ────────────────────────────────────────────
+    function renderLogin() {
+      document.getElementById('parent-root').innerHTML = `
+        <div class="panel" style="max-width:400px;margin:var(--space-10) auto;padding:var(--space-8) var(--space-6)">
+          <h1 style="font-size:1.4rem;font-weight:800;margin-bottom:var(--space-2)">Portal de Padres</h1>
+          <p style="color:var(--text-secondary);font-size:.9rem;margin-bottom:var(--space-6)">
+            Ingresa con el correo que usaste al registrar a tu hijo/a.
+          </p>
+          <div style="margin-bottom:var(--space-4)">
+            <label style="font-size:.82rem;color:var(--text-muted);display:block;margin-bottom:6px">Correo electrónico</label>
+            <input id="email-input" type="email" placeholder="tu@correo.com"
+              style="width:100%;padding:10px 14px;background:var(--bg-overlay);border:1px solid var(--border-light);border-radius:var(--radius-md);color:var(--text-primary);font-size:.95rem;box-sizing:border-box"
+            />
+          </div>
+          <div style="margin-bottom:var(--space-6)">
+            <label style="font-size:.82rem;color:var(--text-muted);display:block;margin-bottom:6px">Contraseña</label>
+            <input id="pass-input" type="password" placeholder="••••••••"
+              style="width:100%;padding:10px 14px;background:var(--bg-overlay);border:1px solid var(--border-light);border-radius:var(--radius-md);color:var(--text-primary);font-size:.95rem;box-sizing:border-box"
+            />
+          </div>
+          <button id="login-btn" class="btn btn--primary" style="width:100%">Ingresar</button>
+          <p id="login-error" style="color:var(--error);font-size:.82rem;margin-top:var(--space-3);display:none"></p>
+        </div>`;
+
+      document.getElementById('login-btn').onclick = async () => {
+        const email = document.getElementById('email-input').value.trim();
+        const pass  = document.getElementById('pass-input').value;
+        const btn   = document.getElementById('login-btn');
+        const errEl = document.getElementById('login-error');
+        btn.disabled = true;
+        btn.textContent = 'Ingresando…';
+        errEl.style.display = 'none';
+
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+        if (error) {
+          errEl.textContent = 'Correo o contraseña incorrectos.';
+          errEl.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Ingresar';
+          return;
+        }
+        document.getElementById('btn-logout').style.display = 'inline-flex';
+        await renderDashboard(data.user.id);
+      };
+    }
+
+    // ── Dashboard del padre ───────────────────────────────────
+    async function renderDashboard(parentId) {
+      const root = document.getElementById('parent-root');
+      root.innerHTML = `<div class="empty-state"><p>Cargando reportes…</p></div>`;
+
+      // Obtener perfil del padre
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', parentId)
+        .maybeSingle();
+
+      // Obtener estudiantes vinculados a este padre
+      const { data: students } = await supabase
+        .from('students')
+        .select('id, profiles(username, avatar_url)')
+        .eq('profile_id', parentId);
+
+      if (!students || students.length === 0) {
+        root.innerHTML = `
+          <div class="empty-state" style="padding-top:60px">
+            <div style="font-size:2rem;margin-bottom:16px">👨‍👩‍👧</div>
+            <p style="font-weight:600">No hay estudiantes vinculados</p>
+            <p style="color:var(--text-muted);font-size:.85rem;margin-top:8px">
+              Pide a tu hijo/a que inicie sesión en la app — el perfil quedará vinculado automáticamente.
+            </p>
+          </div>`;
+        return;
+      }
+
+      let html = `
+        <h1 style="font-size:1.3rem;font-weight:800;margin-bottom:var(--space-6)">
+          Hola${profile?.username ? ', ' + profile.username : ''} 👋
+        </h1>`;
+
+      for (const student of students) {
+        const studentName = student.profiles?.username ?? 'Estudiante';
+
+        // Últimos 4 reportes del estudiante
+        const { data: reports } = await supabase
+          .from('parent_reports')
+          .select('*')
+          .eq('student_id', student.id)
+          .order('week_start', { ascending: false })
+          .limit(4);
+
+        // Predicción más reciente
+        const { data: preds } = await supabase
+          .from('score_predictions')
+          .select('predicted, confidence, calculated_at')
+          .eq('student_id', student.id)
+          .order('calculated_at', { ascending: false })
+          .limit(1);
+
+        const pred = preds?.[0];
+
+        html += `
+          <section style="margin-bottom:var(--space-8)">
+            <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-4)">
+              <div style="width:40px;height:40px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:1.2rem">
+                ${student.profiles?.avatar_url ? `<img src="${student.profiles.avatar_url}" style="width:40px;height:40px;border-radius:50%;object-fit:cover">` : '🎓'}
+              </div>
+              <h2 style="font-size:1.1rem;font-weight:700;margin:0">${studentName}</h2>
+            </div>
+
+            ${pred ? `
+              <div class="report-card" style="border-color:var(--accent-purple);background:var(--accent-purple-dim)">
+                <p class="report-card__week">Puntaje ICFES estimado</p>
+                <div style="display:flex;align-items:baseline;gap:8px">
+                  <span style="font-size:3rem;font-weight:800;color:var(--accent-purple-light)">${pred.predicted}</span>
+                  <span style="color:var(--text-muted)">/500</span>
+                </div>
+                <p style="font-size:.75rem;color:var(--text-muted);margin-top:4px">
+                  Confianza: ${Math.round(pred.confidence * 100)}% · Actualizado ${timeAgo(pred.calculated_at)}
+                </p>
+              </div>` : ''}
+
+            ${reports && reports.length > 0 ? reports.map(r => renderReportCard(r)).join('') : `
+              <div class="report-card">
+                <p style="color:var(--text-muted);font-size:.85rem">
+                  Aún no hay reportes semanales. Se generan cada lunes automáticamente.
+                </p>
+              </div>`}
+          </section>`;
+      }
+
+      root.innerHTML = html;
+    }
+
+    function renderReportCard(r) {
+      const weekLabel = new Date(r.week_start).toLocaleDateString('es-CO', {
+        day: 'numeric', month: 'long', year: 'numeric',
+      });
+      const pct       = Math.round((r.correct_rate ?? 0) * 100);
+      const deltaHTML = r.score_delta !== null
+        ? `<span class="${r.score_delta >= 0 ? 'score-up' : 'score-down'}">${r.score_delta >= 0 ? '↑' : '↓'} ${Math.abs(r.score_delta)} pts</span>`
+        : '';
+
+      const weakTopics = Array.isArray(r.top_weak_topics) && r.top_weak_topics.length > 0
+        ? r.top_weak_topics.map(t => `<span class="weak-chip">${t}</span>`).join('')
+        : '<span style="color:var(--text-muted);font-size:.82rem">Sin temas críticos ✅</span>';
+
+      return `
+        <div class="report-card">
+          <p class="report-card__week">Semana del ${weekLabel}</p>
+          <div class="report-stat">
+            <span class="report-stat__label">✅ Preguntas respondidas</span>
+            <span class="report-stat__value">${r.questions_total}</span>
+          </div>
+          <div class="report-stat">
+            <span class="report-stat__label">🎯 Precisión</span>
+            <span class="report-stat__value" style="color:${pct >= 70 ? 'var(--accent-green-light)' : pct >= 50 ? 'var(--warning)' : 'var(--error)'}">${pct}%</span>
+          </div>
+          <div class="report-stat">
+            <span class="report-stat__label">🔥 Racha</span>
+            <span class="report-stat__value">${r.streak_days} días</span>
+          </div>
+          ${r.predicted_score ? `
+          <div class="report-stat">
+            <span class="report-stat__label">📈 Puntaje estimado</span>
+            <span class="report-stat__value">${r.predicted_score}/500 ${deltaHTML}</span>
+          </div>` : ''}
+          <div class="report-stat" style="flex-direction:column;align-items:flex-start;gap:8px">
+            <span class="report-stat__label">⚠️ Temas a reforzar</span>
+            <div>${weakTopics}</div>
+          </div>
+        </div>`;
+    }
+
+    function timeAgo(dateStr) {
+      const diff = Date.now() - new Date(dateStr).getTime();
+      const days = Math.floor(diff / 86400000);
+      if (days === 0) return 'hoy';
+      if (days === 1) return 'ayer';
+      return `hace ${days} días`;
+    }
+  </script>
+</body>
+</html>
