@@ -2,8 +2,8 @@
 // VERSIÓN: incrementar CACHE_NAME en cada deploy con cambios de assets
 // REGLA: aura-v1 → aura-v2 → aura-v3 ...
 
-const CACHE_NAME   = 'aura-v1';
-const RUNTIME_NAME = 'aura-runtime-v1';
+const CACHE_NAME   = 'aura-v2';
+const RUNTIME_NAME = 'aura-runtime-v2';
 
 const CACHE_ASSETS = [
   // Páginas base
@@ -43,6 +43,12 @@ const CACHE_ASSETS = [
   // Íconos PWA críticos
   '/icons/icon-192.png',
   '/icons/icon-512.png',
+  '/icons/icon-512-maskable.png',
+
+  // Splash screens iOS
+  '/splash/splash-390x844.png',
+  '/splash/splash-375x667.png',
+  '/splash/splash-414x896.png',
 ];
 
 // ─── INSTALL: Pre-cachear assets críticos ────────────────────────────────────
