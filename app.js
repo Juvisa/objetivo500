@@ -718,10 +718,17 @@ function renderQuestion() {
   const q = questions[currentIdx];
   if (!q) { endSession(); return; }
 
-  const n      = questions.length;
-  const opts   = Array.isArray(q.options_json) ? q.options_json : JSON.parse(q.options_json ?? '[]');
-  const saved  = answers[q.id];
-  const solved = !!saved;
+  const n       = questions.length;
+  const rawOpts = Array.isArray(q.options_json) ? q.options_json : JSON.parse(q.options_json ?? '[]');
+  // Shuffle una vez por pregunta; _shuffled persiste en STATE para que
+  // navegar "Anterior/Siguiente" muestre el mismo orden mezclado.
+  if (!q._shuffled && window.QuestionRenderer) {
+    const { shuffledOpts, newCorrectIndex } = QuestionRenderer.shuffleOptions(rawOpts, q.correct_index);
+    q._shuffled = { opts: shuffledOpts, correctIndex: newCorrectIndex };
+  }
+  const opts    = q._shuffled?.opts ?? rawOpts;
+  const saved   = answers[q.id];
+  const solved  = !!saved;
   const letters = ['A', 'B', 'C', 'D'];
 
   root.innerHTML = `
@@ -755,7 +762,8 @@ function renderQuestion() {
         ${opts.map((opt, i) => {
           let cls = '';
           if (solved) {
-            if (i === q.correct_index) cls = 'correct';
+            const _ci = q._shuffled?.correctIndex ?? q.correct_index;
+            if (i === _ci) cls = 'correct';
             else if (i === saved.selected_index) cls = 'incorrect';
           }
           return `
@@ -871,7 +879,7 @@ async function confirmAnswer(selectedIndex) {
 
   const timeUsed   = (STATE.session.secsPerQ ?? SECS_PER_Q) - STATE.session.timerLeft;
 
-  const isCorrect = selectedIndex === q.correct_index;
+  const isCorrect = selectedIndex === (q._shuffled?.correctIndex ?? q.correct_index);
 
   // Guardar en estado local ANTES del await — primera barrera contra race condition.
   STATE.session.answers[q.id] = {
@@ -1148,12 +1156,13 @@ function renderReview() {
       <h3 style="margin-bottom:var(--space-4)">📝 Revisión de errores</h3>
       ${errors.slice(0, 5).map(q => {
         const a = answers[q.id];
-        const options = opts(q);
+        const options = q._shuffled?.opts ?? opts(q);
+        const _ci = q._shuffled?.correctIndex ?? q.correct_index;
         return `
           <div style="padding:var(--space-4);background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:var(--space-3)">
             <p style="font-size:.875rem;font-weight:500;margin-bottom:var(--space-3)">${escapeHtml(q.stem.slice(0, 150))}${q.stem.length > 150 ? '…' : ''}</p>
             <p style="font-size:.8rem;color:var(--error)">Tu respuesta: ${letters[a.selected_index]}. ${escapeHtml(options[a.selected_index] ?? '')}</p>
-            <p style="font-size:.8rem;color:var(--accent-green-light)">Correcta: ${letters[q.correct_index]}. ${escapeHtml(options[q.correct_index] ?? '')}</p>
+            <p style="font-size:.8rem;color:var(--accent-green-light)">Correcta: ${letters[_ci]}. ${escapeHtml(options[_ci] ?? '')}</p>
             <p style="font-size:.78rem;color:var(--text-muted);margin-top:var(--space-2)">${escapeHtml(q.explanation.slice(0, 200))}</p>
           </div>`;
       }).join('')}

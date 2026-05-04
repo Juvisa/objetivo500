@@ -2,8 +2,8 @@
 // VERSIÓN: incrementar CACHE_NAME en cada deploy con cambios de assets
 // REGLA: aura-v1 → aura-v2 → aura-v3 ...
 
-const CACHE_NAME   = 'aura-v2';
-const RUNTIME_NAME = 'aura-runtime-v2';
+const CACHE_NAME   = 'aura-v3';
+const RUNTIME_NAME = 'aura-runtime-v3';
 
 const CACHE_ASSETS = [
   // Páginas base
@@ -26,6 +26,7 @@ const CACHE_ASSETS = [
   '/lib/content-quality.js',
   '/lib/plans.js',
   '/lib/score-predictor.js',
+  '/lib/invite-codes.js',
   '/lib/onboarding.js',
   '/lib/exam-calendar.js',
   '/lib/battle.js',
