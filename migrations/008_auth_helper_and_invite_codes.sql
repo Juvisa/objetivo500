@@ -114,5 +114,15 @@ INSERT INTO invite_codes (code, label, role, max_uses) VALUES
   ('AURA-BETA-07', 'Tester Beta 7',  'tester', 1),
   ('AURA-BETA-08', 'Tester Beta 8',  'tester', 1),
   ('AURA-BETA-09', 'Tester Beta 9',  'tester', 1),
-  ('AURA-BETA-10', 'Tester Beta 10', 'tester', 1)
+  ('AURA-BETA-10', 'Tester Beta 10', 'tester', 1),
+  ('AURA-BETA-11', 'Tester Beta 11', 'tester', 1),
+  ('AURA-BETA-12', 'Tester Beta 12', 'tester', 1),
+  ('AURA-BETA-13', 'Tester Beta 13', 'tester', 1),
+  ('AURA-BETA-14', 'Tester Beta 14', 'tester', 1),
+  ('AURA-BETA-15', 'Tester Beta 15', 'tester', 1),
+  ('AURA-BETA-16', 'Tester Beta 16', 'tester', 1),
+  ('AURA-BETA-17', 'Tester Beta 17', 'tester', 1),
+  ('AURA-BETA-18', 'Tester Beta 18', 'tester', 1),
+  ('AURA-BETA-19', 'Tester Beta 19', 'tester', 1),
+  ('AURA-BETA-20', 'Tester Beta 20', 'tester', 1)
 ON CONFLICT (code) DO NOTHING;

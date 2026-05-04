@@ -210,6 +210,13 @@ function renderHeader() {
         title="${STATE.profile.username}"
       />
       <button
+        onclick="window.InviteCodes && InviteCodes.openRedeemModal('${STATE.profile.user_id}')"
+        class="btn btn--ghost btn--sm"
+        title="Canjear código de acceso"
+        style="font-size:.75rem;padding:4px 10px"
+        aria-label="Canjear código"
+      >🎟 Código</button>
+      <button
         onclick="signOut()"
         class="btn btn--ghost btn--sm"
         title="Cerrar sesión"
