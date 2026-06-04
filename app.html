@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Objetivo 500 — Estudiar</title>
 
+  <!-- VAPID Public Key (usada por push-manager.js) -->
+  <meta name="vapid-public-key" content="BG_-jIdLIs8g_8F8iHX-WrBzyYa1xW_Cln9bEcAeyZtoC4VWXul1J5euIvX42hrhWoh8ywpXHbA9TnUIoJtUMyc" />
+
   <!-- PWA Core -->
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#7C3AED" />
@@ -86,6 +89,9 @@
     <div class="navbar__actions" id="header-user" aria-live="polite"></div>
   </nav>
 
+  <!-- Reloj Global por Bloque — sticky bajo la navbar, visible solo durante sesión -->
+  <div id="block-timer-bar-container" style="display:none" aria-live="polite"></div>
+
   <main id="app-root" style="max-width:900px;margin:0 auto;padding:var(--space-6) var(--space-4) var(--space-16)">
     <div class="empty-state" style="padding-top:120px">
       <div style="font-size:2rem;margin-bottom:16px">⏳</div>
@@ -164,6 +170,18 @@
   <!-- Invite Codes — acceso controlado para testers -->
   <script src="lib/invite-codes.js"></script>
 
+  <!-- Session Loader — preload centralizado de batallas, certs y calendario -->
+  <script src="lib/session-loader.js"></script>
+
+  <!-- Exam Date Gate — modal de fecha obligatoria -->
+  <script src="components/exam-date-gate.js"></script>
+
+  <!-- Support FAB — botón flotante de WhatsApp -->
+  <script src="components/support-fab.js"></script>
+
+  <!-- Checkout — pantalla de pago con campo de cupón -->
+  <script src="components/checkout.js"></script>
+
   <!-- Score Predictor — predicción de puntaje ICFES -->
   <script src="lib/score-predictor.js"></script>
 
@@ -178,6 +196,21 @@
 
   <!-- Certificates — certificados de logro descargables -->
   <script src="lib/certificates.js"></script>
+
+  <!-- Question Selector — anti-repetición client-side -->
+  <script src="lib/question-selector.js"></script>
+
+  <!-- Pre-exam Modal — aviso antes de cada sesión -->
+  <script src="components/pre-exam-modal.js"></script>
+
+  <!-- Block Timer — reloj global por bloque -->
+  <script defer src="lib/block-timer.js"></script>
+
+  <!-- Question Nav — mapa de preguntas numerado -->
+  <script defer src="lib/question-nav.js"></script>
+
+  <!-- Push Manager — notificaciones push -->
+  <script defer src="lib/push-manager.js"></script>
 
   <!-- Question Renderer — LaTeX + bloques pedagógicos -->
   <script defer src="lib/question-renderer.js"></script>

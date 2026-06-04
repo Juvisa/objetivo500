@@ -2,8 +2,8 @@
 // VERSIÓN: incrementar CACHE_NAME en cada deploy con cambios de assets
 // REGLA: aura-v1 → aura-v2 → aura-v3 ...
 
-const CACHE_NAME   = 'aura-v3';
-const RUNTIME_NAME = 'aura-runtime-v3';
+const CACHE_NAME   = 'aura-v11';
+const RUNTIME_NAME = 'aura-runtime-v11';
 
 const CACHE_ASSETS = [
   // Páginas base
@@ -27,19 +27,28 @@ const CACHE_ASSETS = [
   '/lib/plans.js',
   '/lib/score-predictor.js',
   '/lib/invite-codes.js',
+  '/lib/session-loader.js',
   '/lib/onboarding.js',
   '/lib/exam-calendar.js',
   '/lib/battle.js',
   '/lib/certificates.js',
   '/lib/question-renderer.js',
+  '/lib/question-selector.js',
   '/lib/audio-synth.js',
   '/lib/audio-config.js',
   '/lib/audio-engine.js',
   '/lib/audio-events.js',
+  '/lib/block-timer.js',
+  '/lib/question-nav.js',
+  '/lib/push-manager.js',
 
   // Componentes
   '/components/bottom-nav.js',
   '/components/pwa-install.js',
+  '/components/checkout.js',
+  '/components/exam-date-gate.js',
+  '/components/support-fab.js',
+  '/components/pre-exam-modal.js',
 
   // Íconos PWA críticos
   '/icons/icon-192.png',
@@ -95,6 +104,9 @@ self.addEventListener('fetch', event => {
 
   // Solo interceptar GET; dejar pasar POST/PUT/DELETE sin tocar
   if (request.method !== 'GET') return;
+
+  // Solo http/https — evita errores con chrome-extension://, moz-extension://, etc.
+  if (!url.protocol.startsWith('http')) return;
 
   // Supabase — siempre red (realtime, auth, datos)
   if (url.hostname.includes('supabase.co')) return;
@@ -157,7 +169,8 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       fetch(request)
         .then(res => {
-          caches.open(RUNTIME_NAME).then(c => c.put(request, res.clone()));
+          const clone = res.clone(); // clonar síncronamente antes de cualquier await
+          caches.open(RUNTIME_NAME).then(c => c.put(request, clone));
           return res;
         })
         .catch(() =>

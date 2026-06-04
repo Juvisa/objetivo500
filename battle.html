@@ -165,13 +165,14 @@
         const btn     = document.getElementById('create-btn');
         const subject = document.getElementById('subject-select').value || null;
         btn.disabled  = true; btn.textContent = 'Creando…';
-        const battleId = await Battle.create(BS.student.id, subject);
-        if (!battleId) {
-          showToast('Error', 'No se pudo crear la batalla.', '❌', 'error');
+        const result = await Battle.create(BS.student?.id, subject);
+        if (result?.error || !result?.battleId) {
+          const msg = result?.error?.message ?? 'No se pudo crear la batalla.';
+          showToast('Error al crear batalla', msg, '❌', 'error');
           btn.disabled = false; btn.textContent = 'Crear batalla';
           return;
         }
-        renderWaitingLobby(battleId);
+        renderWaitingLobby(result.battleId);
       };
     }
 
@@ -216,8 +217,18 @@
       BS.detail = data;
 
       if (data.battle.status === 'pending') {
-        renderWaitingLobby(battleId);
-        return;
+        if (data.battle.challenger_id === BS.student.id) {
+          renderWaitingLobby(battleId);
+          return;
+        }
+        root.innerHTML = `<div class="empty-state" style="padding-top:80px"><div style="font-size:2rem;margin-bottom:16px">⚔️</div><p>Uniéndote a la batalla…</p></div>`;
+        const joined = await Battle.join(battleId, BS.student.id);
+        if (!joined) {
+          showToast('Error al unirse', 'No se pudo unir a la batalla. Verifica el código.', '❌', 'error');
+          root.innerHTML = `<div class="empty-state"><p>No se pudo unir a la batalla.</p></div>`;
+          return;
+        }
+        return loadAndRender(battleId);
       }
       if (data.battle.status === 'completed') {
         renderResult();
@@ -228,25 +239,26 @@
       const answered = Object.keys(data.my_answers ?? {});
       BS.currentIdx = data.questions.findIndex(q => !answered.includes(q.id));
       if (BS.currentIdx === -1) {
-        // Yo ya terminé, esperar al rival
         renderWaitingForOpponent();
-        Battle.subscribeToChanges(battleId, (p) => {
-          if (p.new?.status === 'completed') renderResult();
-        });
         return;
       }
 
       renderQuestion();
       // Escuchar si la batalla se completa mientras respondemos
-      Battle.subscribeToChanges(battleId, (p) => {
+      Battle.subscribeToChanges(battleId, async (p) => {
         if (p.new?.status === 'completed') {
           clearTimer();
-          BS.detail.battle = p.new;
-          renderResult();
+          await _refreshAndRenderResult(battleId); // fetch fresco — REPLICA IDENTITY puede no estar en FULL
         }
-        // Actualizar score del oponente en tiempo real
         if (p.new) _updateOpponentScore(p.new);
       });
+    }
+
+    // Fetch fresco de la batalla y renderizar resultado
+    async function _refreshAndRenderResult(battleId) {
+      const fresh = await Battle.getDetail(battleId, BS.student.id);
+      if (fresh) BS.detail = fresh;
+      renderResult();
     }
 
     function _updateOpponentScore(newBattle) {
@@ -293,12 +305,12 @@
           <p style="font-size:.78rem;color:var(--text-muted);margin-bottom:var(--space-3)">
             ${q.subject?.replace(/_/g,' ')} · ${q.difficulty ?? ''}
           </p>
-          ${q.context ? `<blockquote style="border-left:3px solid var(--border-light);padding-left:12px;color:var(--text-secondary);font-size:.88rem;margin:0 0 var(--space-4)">${q.context}</blockquote>` : ''}
-          <p style="font-size:1rem;line-height:1.6">${q.question_text}</p>
+          ${q.context_text ? `<blockquote style="border-left:3px solid var(--border-light);padding-left:12px;color:var(--text-secondary);font-size:.88rem;margin:0 0 var(--space-4)">${q.context_text}</blockquote>` : ''}
+          <p style="font-size:1rem;line-height:1.6">${q.stem}</p>
         </div>
 
         <div id="options-container" style="display:flex;flex-direction:column;gap:var(--space-2)">
-          ${q.options.map((opt, i) => `
+          ${(q.options_json ?? []).map((opt, i) => `
             <button class="bt-answer-btn" data-idx="${i}" onclick="selectBattleAnswer(${i})">
               <span class="bt-letter">${letters[i]}</span>
               <span>${opt}</span>
@@ -363,19 +375,22 @@
 
       BS.currentIdx++;
       if (BS.currentIdx >= BS.detail.questions.length) {
-        renderWaitingForOpponent();
-        Battle.subscribeToChanges(BS.battleId, (p) => {
-          if (p.new?.status === 'completed') {
-            BS.detail.battle = p.new;
-            renderResult();
-          }
-        });
+        // Verificar si el rival ya terminó antes de mostrar pantalla de espera
+        const { data: check } = await supabase
+          .from('battles').select('status').eq('id', BS.battleId).maybeSingle();
+        if (check?.status === 'completed') {
+          await _refreshAndRenderResult(BS.battleId);
+        } else {
+          renderWaitingForOpponent();
+        }
       } else {
         renderQuestion();
       }
     };
 
     // ── Esperar al oponente ───────────────────────────────────────
+    let _waitPolling = null;
+
     function renderWaitingForOpponent() {
       root.innerHTML = `
         <div class="panel" style="text-align:center;padding:var(--space-10) var(--space-6)">
@@ -384,6 +399,35 @@
           <p style="color:var(--text-muted)">Esperando que tu rival termine…</p>
           <p style="color:var(--accent-purple-light);font-weight:700;font-size:1.3rem;margin-top:var(--space-4)">${BS.myScore} aciertos</p>
         </div>`;
+
+      // Realtime (requiere REPLICA IDENTITY FULL en Supabase)
+      Battle.subscribeToChanges(BS.battleId, async (p) => {
+        if (p.new?.status === 'completed') {
+          _clearWaitPolling();
+          await _refreshAndRenderResult(BS.battleId);
+        }
+      });
+
+      // Polling fallback cada 4s en caso de que Realtime no llegue
+      _clearWaitPolling();
+      _waitPolling = setInterval(async () => {
+        const { data } = await supabase
+          .from('battles')
+          .select('status, challenger_score, opponent_score, winner_id')
+          .eq('id', BS.battleId)
+          .maybeSingle();
+        if (data?.status === 'completed') {
+          _clearWaitPolling();
+          Battle.unsubscribe();
+          const fresh = await Battle.getDetail(BS.battleId, BS.student.id);
+          if (fresh) BS.detail = fresh;
+          renderResult();
+        }
+      }, 4000);
+    }
+
+    function _clearWaitPolling() {
+      if (_waitPolling) { clearInterval(_waitPolling); _waitPolling = null; }
     }
 
     // ── Resultado final ───────────────────────────────────────────
@@ -395,6 +439,7 @@
       const iWon        = b.winner_id === BS.student.id;
       const isDraw      = !b.winner_id;
 
+      _clearWaitPolling();
       Battle.unsubscribe();
 
       root.innerHTML = `

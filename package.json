@@ -6,10 +6,12 @@
     "lote1": "node seed/lote-1-matematicas.js",
     "lote2": "node seed/lote-2-matematicas.js",
     "lote3": "node seed/lote-3-lectura-critica.js",
-    "lote4": "node seed/lote-4-lectura-critica.js"
+    "lote4": "node seed/lote-4-lectura-critica.js",
+    "vapid:generate": "npx web-push generate-vapid-keys"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",
-    "dotenv": "^16.4.0"
+    "dotenv": "^16.4.0",
+    "web-push": "^3.6.7"
   }
 }

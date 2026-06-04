@@ -3,14 +3,24 @@
 // vienen como globales desde app.html
 
 // ── Constantes ────────────────────────────────────────────────
-const SECS_PER_Q = 90; // sesión mixta: promedio real del ICFES
+// Tiempos oficiales por bloque (20 preguntas) en segundos
+const BLOCK_SECS_BY_SUBJECT = {
+  matematicas:        46 * 60,  // 46 min oficiales
+  lectura_critica:    40 * 60,  // 40 min oficiales
+  sociales:           40 * 60,  // 40 min oficiales
+  ciencias_naturales: 40 * 60,  // 40 min oficiales
+  ingles:             30 * 60,  // 30 min oficiales
+};
+const BLOCK_SECS_DEFAULT    = 40 * 60; // fallback para sesiones mixtas (40 min)
 
+// Retrocompat: secsPerQ sigue usándose en SessionPersistence, mantenemos alias
+const SECS_PER_Q            = 90;
 const SECS_PER_Q_BY_SUBJECT = {
-  lectura_critica:    105,  // 150 min ÷ 85 preguntas
-  matematicas:        108,  // 90 min ÷ 50 preguntas
-  ciencias_naturales:  78,  // 75 min ÷ 58 preguntas
-  sociales:           108,  // 90 min ÷ 50 preguntas
-  ingles:              90,  // 45 min ÷ 30 preguntas
+  lectura_critica:    105,
+  matematicas:        108,
+  ciencias_naturales:  78,
+  sociales:           108,
+  ingles:              90,
 };
 const SUBJECTS   = {
   lectura_critica:       'Lectura Crítica',
@@ -33,14 +43,18 @@ let STATE = {
   profile:    null,   // objeto de profiles
   student:    null,   // objeto de students (con badges)
   session: {
-    id:          null,
-    questions:   [],  // array de objetos question completos
-    currentIdx:  0,
-    answers:     {},  // questionId → {selected_index, is_correct, time_seconds}
-    timerLeft:   SECS_PER_Q,
-    secsPerQ:    SECS_PER_Q,
-    timerHandle: null,
-    started:     false,
+    id:             null,
+    questions:      [],   // array de objetos question completos
+    currentIdx:     0,
+    answers:        {},   // questionId → {selected_index, is_correct, time_seconds}
+    // Reloj por bloque:
+    blockSecsTotal: BLOCK_SECS_DEFAULT,
+    blockSecsLeft:  BLOCK_SECS_DEFAULT,
+    // Retrocompat con SessionPersistence:
+    timerLeft:      SECS_PER_Q,
+    secsPerQ:       SECS_PER_Q,
+    timerHandle:    null,
+    started:        false,
   },
   realtimeChannels: [],
 };
@@ -68,6 +82,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderDashboard();
   setupRealtime();
 
+  // FAB de soporte WhatsApp — se actualiza con el nombre real al cargar el perfil
+  if (window.SupportFAB) {
+    const _fab = SupportFAB.init(STATE.profile?.username);
+    if (STATE.profile?.username) _fab.updateUserName(STATE.profile.username);
+  }
+
+  // Verificar fecha de examen — modal si no la tiene (una vez por sesión)
+  if (window.ExamDateGate && STATE.profile?.user_id) {
+    const createdAt = user?.created_at ?? '';
+    const hoursOld  = createdAt ? (Date.now() - new Date(createdAt).getTime()) / 3600000 : 999;
+    ExamDateGate.check(STATE.profile.user_id, hoursOld < 24);
+  }
+
   // Activar click sounds globales (lazy — AudioContext se crea al primer click)
   if (window.AudioEvents) AudioEvents.initClickSounds();
 
@@ -78,6 +105,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Bottom nav mobile — iniciar una sola vez al arrancar la app
   if (window.BottomNav) BottomNav.init();
+
+  // Inicializar botón de notificaciones push
+  if (window.PushManager500 && STATE.profile?.user_id) {
+    PushManager500.init(STATE.profile.user_id);
+  }
 
   // Si hay sesión pendiente, mostrar banner (no toast) para decisión explícita
   if (window.SessionPersistence && STATE.student?.id) {
@@ -138,8 +170,17 @@ async function loadStudentData() {
   STATE.student = data;
 }
 
-/** Llama a la función SQL de selección inteligente de preguntas. */
+/** Selección anti-repetición: usa QuestionSelector si disponible, sino RPC. */
 async function fetchSessionQuestions(n = 20, subject = null) {
+  if (window.QuestionSelector) {
+    try {
+      const qs = await QuestionSelector.selectSessionQuestions(STATE.student.id, subject, n);
+      if (qs && qs.length >= Math.min(5, n)) return qs;
+    } catch (e) {
+      console.warn('[O500] QuestionSelector falló, usando RPC:', e.message);
+    }
+  }
+
   const { data, error } = await supabase
     .rpc('get_session_questions', {
       p_student_id: STATE.student.id,
@@ -148,7 +189,7 @@ async function fetchSessionQuestions(n = 20, subject = null) {
     });
 
   if (error) {
-    console.error('[O500] fetchSessionQuestions:', error.message);
+    console.error('[O500] fetchSessionQuestions RPC:', error.message);
     return [];
   }
   return data ?? [];
@@ -210,13 +251,6 @@ function renderHeader() {
         title="${STATE.profile.username}"
       />
       <button
-        onclick="window.InviteCodes && InviteCodes.openRedeemModal('${STATE.profile.user_id}')"
-        class="btn btn--ghost btn--sm"
-        title="Canjear código de acceso"
-        style="font-size:.75rem;padding:4px 10px"
-        aria-label="Canjear código"
-      >🎟 Código</button>
-      <button
         onclick="signOut()"
         class="btn btn--ghost btn--sm"
         title="Cerrar sesión"
@@ -247,12 +281,29 @@ function renderDashboard() {
   const root = document.getElementById('app-root');
   if (!root) return;
 
+  // Ocultar el reloj por bloque al regresar al dashboard
+  const timerContainer = document.getElementById('block-timer-bar-container');
+  if (timerContainer) timerContainer.style.display = 'none';
+
   root.innerHTML = `
     <!-- Onboarding — oculto automáticamente cuando se completan los 5 pasos -->
     <section id="onboarding-bar" class="ob-container" style="margin-bottom:var(--space-4)"></section>
 
     <!-- Guardián del Saber -->
     <section id="guardian-widget-container" style="margin-bottom:var(--space-4)"></section>
+
+    <!-- Insignias — primero para dar contexto visual antes del countdown -->
+    <section class="panel" style="margin-bottom:var(--space-4)">
+      <h3 style="margin-bottom:var(--space-4)">Mis insignias</h3>
+      <div id="badges-grid" style="display:flex;flex-wrap:wrap;gap:var(--space-3)">
+        ${renderBadges()}
+      </div>
+    </section>
+
+    <!-- Cuenta regresiva al examen — después de insignias, antes de stats -->
+    <section class="panel" id="exam-calendar-widget" style="margin-bottom:var(--space-4)">
+      <div class="empty-state" style="padding:var(--space-4) 0"><p style="font-size:.85rem">Cargando calendario…</p></div>
+    </section>
 
     <!-- Hero con puntaje estimado -->
     <section class="panel" style="text-align:center;padding:var(--space-10) var(--space-6);">
@@ -278,18 +329,13 @@ function renderDashboard() {
       </div>
     </section>
 
-    <!-- Cuenta regresiva al examen -->
-    <section class="panel" id="exam-calendar-widget" style="margin-top:var(--space-4)">
-      <div class="empty-state" style="padding:var(--space-4) 0"><p style="font-size:.85rem">Cargando calendario…</p></div>
-    </section>
-
     <!-- Predicción de puntaje por área -->
     <section class="panel" id="score-prediction-panel" style="margin-top:var(--space-4)">
       <div class="empty-state" style="padding:var(--space-4) 0"><p style="font-size:.85rem">Cargando predicción…</p></div>
     </section>
 
     <!-- Selector de modo -->
-    <section>
+    <section style="margin-top:var(--space-6)">
       <h2 style="margin-bottom:var(--space-4)">¿Qué practicamos hoy?</h2>
       <div class="stats-grid" id="mode-grid">
         ${renderModeCards()}
@@ -331,14 +377,6 @@ function renderDashboard() {
       <a href="certificates.html" class="btn btn--ghost btn--sm">Ver todos →</a>
     </section>
 
-    <!-- Insignias -->
-    <section class="panel" style="margin-top:var(--space-6)">
-      <h3 style="margin-bottom:var(--space-4)">Mis insignias</h3>
-      <div id="badges-grid" style="display:flex;flex-wrap:wrap;gap:var(--space-3)">
-        ${renderBadges()}
-      </div>
-    </section>
-
     <!-- Leaderboard semanal -->
     <section class="panel" style="margin-top:var(--space-6)">
       <h3 style="margin-bottom:var(--space-4)">🏆 Ranking semanal</h3>
@@ -362,8 +400,8 @@ function renderDashboard() {
   loadLeaderboard();
   loadFeed();
   loadScorePrediction();
-  if (window.ExamCalendar && STATE.student?.id) {
-    ExamCalendar.renderWidget(STATE.student.id, 'exam-calendar-widget');
+  if (window.ExamCalendar && STATE.profile?.user_id) {
+    ExamCalendar.renderWidget(STATE.profile.user_id, 'exam-calendar-widget');
   }
   if (window.Certificates && STATE.student?.id) {
     Certificates.getAll(STATE.student.id).then(certs => {
@@ -667,27 +705,46 @@ window.showSubjectPicker = function(n) {
  * @param {boolean} weakOnly — ignorar aleatorias, solo temas débiles
  */
 window.startSession = async function(n, subject, weakOnly = false) {
+  // Calcular tiempo del bloque
+  const blockSecs = subject
+    ? (BLOCK_SECS_BY_SUBJECT[subject] ?? BLOCK_SECS_DEFAULT)
+    : BLOCK_SECS_DEFAULT;
+  // Escalar proporcionalmente si el bloque no es de 20 preguntas
+  const scaledSecs = Math.round(blockSecs * (n / 20));
+
+  // Aviso pre-prueba — siempre antes de iniciar
+  if (window.PreExamModal) {
+    const decision = await PreExamModal.show({
+      questions: n,
+      minutes:   Math.round(scaledSecs / 60),
+      subject:   subject ? SUBJECTS[subject] : null,
+    });
+    if (decision === 'cancel') return;
+  }
+
   // Resetear estado de sesión
-  clearTimer();
+  stopBlockTimer();
   if (window.SafeExit)            SafeExit.destroy();
   if (window.SessionPersistence)  SessionPersistence.stopAutoSave();
   if (window.AudioEvents)         AudioEvents.stopGuardianAmbient();
   if (window.BottomNav)           BottomNav.hide();
   if (window.AnswerLock)          AnswerLock.clearAll();
 
-  const secsForSubject = SECS_PER_Q_BY_SUBJECT[subject] ?? SECS_PER_Q;
   STATE.session = {
-    id:          crypto.randomUUID(),
-    subject:     subject,
-    questions:   [],
-    currentIdx:  0,
-    answers:     {},
-    timerLeft:   secsForSubject,
-    secsPerQ:    secsForSubject,
-    timerHandle: null,
-    started:     false,
-    startedAt:   new Date().toISOString(),
-    sessionType: weakOnly ? 'repaso' : n >= 40 ? 'simulacro' : 'practice',
+    id:             crypto.randomUUID(),
+    subject:        subject,
+    questions:      [],
+    currentIdx:     0,
+    answers:        {},
+    blockSecsTotal: scaledSecs,
+    blockSecsLeft:  scaledSecs,
+    // Retrocompat:
+    timerLeft:      scaledSecs,
+    secsPerQ:       SECS_PER_Q_BY_SUBJECT[subject] ?? SECS_PER_Q,
+    timerHandle:    null,
+    started:        false,
+    startedAt:      new Date().toISOString(),
+    sessionType:    weakOnly ? 'repaso' : n >= 40 ? 'simulacro' : 'practice',
   };
 
   const root = document.getElementById('app-root');
@@ -709,9 +766,20 @@ window.startSession = async function(n, subject, weakOnly = false) {
   STATE.session.questions = questions;
   STATE.session.started   = true;
 
+  // Mostrar el contenedor del reloj por bloque
+  const timerContainer = document.getElementById('block-timer-bar-container');
+  if (timerContainer && window.BlockTimer) {
+    timerContainer.innerHTML = BlockTimer.renderHTML(
+      SUBJECTS[subject] ?? 'Bloque',
+      STATE.session.blockSecsTotal
+    );
+    timerContainer.style.display = 'block';
+  }
+
   if (window.SessionPersistence) SessionPersistence.initAutoSave();
   saveSessionToStorage();
   renderQuestion();
+  startBlockTimer();
 };
 
 // ══════════════════════════════════════════════════════════════
@@ -802,31 +870,31 @@ function renderQuestion() {
           <div id="hack-prime-panel" class="hack-prime-panel" style="display:none"></div>
         </div>` : ''}` : ''}
 
-      <!-- Navegación -->
+      <!-- Navegación libre -->
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--space-6)">
         <button class="btn btn--ghost" onclick="navigateQuestion(-1)" ${currentIdx === 0 ? 'disabled' : ''}>← Anterior</button>
-
-        ${!solved ? `
-          <div class="timer-display" style="position:static">
-            <span style="font-size:.75rem;color:var(--text-muted)">⏱</span>
-            <span class="timer-value font-mono" id="timer-value">${formatTime(STATE.session.timerLeft)}</span>
-          </div>` : '<div></div>'}
-
         <button class="btn btn--primary" onclick="navigateQuestion(1)" id="btn-next">
-          ${currentIdx === n - 1 ? 'Terminar ✓' : 'Siguiente →'}
+          ${currentIdx === n - 1 ? 'Ver resumen' : 'Siguiente →'}
         </button>
       </div>
     </article>
+
+    <!-- Mapa de preguntas numerado -->
+    <div id="question-map" class="question-map-container"></div>
   `;
 
-  // Iniciar timer si la pregunta no está resuelta
-  if (!solved) startTimer();
-  else clearTimer();
+  // Renderizar mapa de navegación
+  if (window.QuestionNav) {
+    QuestionNav.render(n, currentIdx, answers, questions, (idx) => {
+      STATE.session.currentIdx = idx;
+      renderQuestion();
+    });
+  }
 
   // Safe Exit: inyectar/actualizar botón en cada render de pregunta
   if (window.SafeExit) SafeExit.init();
 
-  // Renderizar fórmulas LaTeX en toda la tarjeta de pregunta (stem, opciones, explicación)
+  // Renderizar fórmulas LaTeX en toda la tarjeta de pregunta
   if (window.QuestionRenderer) {
     QuestionRenderer.renderLatexInElement(document.getElementById('question-card'));
   }
@@ -865,26 +933,25 @@ window.selectOption = async function(index) {
  * @param {number} selectedIndex
  */
 async function confirmAnswer(selectedIndex) {
-  clearTimer();
-
-  const q          = STATE.session.questions[STATE.session.currentIdx];
+  const q = STATE.session.questions[STATE.session.currentIdx];
   if (!q) return;
 
   // ── CERROJO ANTI-EXPLOIT ──────────────────────────────────────────
-  // Blinda contra: doble-tap (race condition), back-navigation, recarga.
-  // Verificar cerrojo en memoria (sin red — instantáneo).
   if (window.AnswerLock && AnswerLock.isLocked(q.id)) {
     showAlreadyAnsweredState(q.id);
     return;
   }
-  // Fallback: STATE.session.answers actúa como segunda línea de defensa.
   if (STATE.session.answers[q.id]) {
     showAlreadyAnsweredState(q.id);
     return;
   }
   // ─────────────────────────────────────────────────────────────────
 
-  const timeUsed   = (STATE.session.secsPerQ ?? SECS_PER_Q) - STATE.session.timerLeft;
+  // Tiempo usado estimado: basado en el tiempo restante del bloque
+  const blockElapsed = (STATE.session.blockSecsTotal ?? BLOCK_SECS_DEFAULT)
+                     - (window.BlockTimer ? BlockTimer.getSecsLeft() : STATE.session.blockSecsLeft ?? 0);
+  const timeUsed     = Math.max(1, Math.round(blockElapsed / Math.max(1,
+                       Object.keys(STATE.session.answers).length + 1)));
 
   const isCorrect = selectedIndex === (q._shuffled?.correctIndex ?? q.correct_index);
 
@@ -900,8 +967,8 @@ async function confirmAnswer(selectedIndex) {
     AnswerLock.lock(q.id, { selectedOption: selectedIndex, isCorrect, xpAwarded: 0 });
   }
 
-  // Deshabilitar botón Anterior — no se puede retroceder tras confirmar.
-  _disableBackButton();
+  // Navegación libre: NO se deshabilita el botón Anterior
+  // _disableBackButton() eliminado — el estudiante puede revisar sus respuestas
 
   saveSessionToStorage();
 
@@ -1027,15 +1094,16 @@ window.navigateQuestion = function(direction) {
   const { questions, currentIdx } = STATE.session;
   const next = currentIdx + direction;
 
-  if (next < 0 || next > questions.length) return;
+  if (next < 0) return;
 
-  if (next === questions.length) {
-    endSession();
+  // Al presionar "Ver resumen" en la última pregunta → mostrar resumen previo al envío
+  if (next >= questions.length) {
+    renderPreSubmitSummary();
     return;
   }
 
   STATE.session.currentIdx = next;
-  clearTimer();
+  // El reloj de bloque NO se resetea al navegar — sigue corriendo
   renderQuestion();
 };
 
@@ -1054,8 +1122,12 @@ function computeRachaConsecutiva() {
 //  FIN DE SESIÓN
 // ══════════════════════════════════════════════════════════════
 async function endSession() {
-  clearTimer();
+  stopBlockTimer();
   clearSavedSession();
+
+  // Ocultar el reloj por bloque
+  const timerContainer = document.getElementById('block-timer-bar-container');
+  if (timerContainer) timerContainer.style.display = 'none';
   if (window.SafeExit)           SafeExit.destroy();
   if (window.SessionPersistence) {
     SessionPersistence.stopAutoSave();
@@ -1178,70 +1250,156 @@ function renderReview() {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  TIMER
+//  RELOJ POR BLOQUE (reemplaza el timer por pregunta)
 // ══════════════════════════════════════════════════════════════
-function startTimer() {
-  clearTimer();
-  // Recuperar tiempo restante si venía de localStorage
-  let left = STATE.session.timerLeft;
 
-  STATE.session.timerHandle = setInterval(() => {
-    left--;
-    STATE.session.timerLeft = left;
+/** Arranca el BlockTimer global para la sesión activa. */
+function startBlockTimer() {
+  if (!window.BlockTimer) return;
 
-    const el = document.getElementById('timer-value');
-    if (el) {
-      el.textContent = formatTime(left);
-      el.className   = 'timer-value font-mono' +
-        (left <= 10 ? ' danger' : left <= 30 ? ' warn' : '');
-    }
+  const total   = STATE.session.blockSecsTotal ?? BLOCK_SECS_DEFAULT;
+  const resume  = STATE.session.blockSecsLeft !== total ? STATE.session.blockSecsLeft : null;
 
-    if (left <= 0) autoAdvance();
-  }, 1000);
+  BlockTimer.start(
+    total,
+    // onTick: guardar tiempo restante en STATE para persistencia
+    (secsLeft) => {
+      STATE.session.blockSecsLeft = secsLeft;
+      STATE.session.timerLeft     = secsLeft; // retrocompat SessionPersistence
+    },
+    // onExpire: tiempo agotado → envío automático
+    () => {
+      showToast('⏰ Tiempo agotado', 'El bloque terminó. Enviando respuestas…', '⏰', 'error');
+      setTimeout(() => endSession(), 1500);
+    },
+    resume
+  );
 }
 
-function clearTimer() {
-  if (STATE.session.timerHandle) {
+/** Detiene el BlockTimer (al salir, al enviar, al pausar). */
+function stopBlockTimer() {
+  if (window.BlockTimer) BlockTimer.stop();
+  // Limpiar el setInterval legacy si existía
+  if (STATE.session?.timerHandle) {
     clearInterval(STATE.session.timerHandle);
     STATE.session.timerHandle = null;
   }
 }
 
-async function autoAdvance() {
-  clearTimer();
-  const q = STATE.session.questions[STATE.session.currentIdx];
-  if (!q || STATE.session.answers[q.id]) return;
+/** Alias de compatibilidad — llamado en clearTimer() legacy. */
+function clearTimer() { stopBlockTimer(); }
 
-  // Tiempo agotado → marcar como no respondida (index = -1 convención)
-  const secsPerQ = STATE.session.secsPerQ ?? SECS_PER_Q;
-  STATE.session.answers[q.id] = { selected_index: -1, is_correct: false, time_seconds: secsPerQ };
+const formatTime = s => `${Math.floor(Math.abs(s) / 60)}:${String(Math.abs(s) % 60).padStart(2,'0')}`;
 
-  // Registrar en Supabase como -1 (opción inválida = no respondida)
-  try {
-    await supabase.from('student_answers').insert({
-      student_id:     STATE.student.id,
-      question_id:    q.id,
-      selected_index: 0,   // placeholder, is_correct=false
-      is_correct:     false,
-      time_seconds:   secsPerQ,
-      session_id:     STATE.session.id,
+// ── Pantalla de resumen antes de enviar ──────────────────────
+function renderPreSubmitSummary() {
+  const root = document.getElementById('app-root');
+  if (!root) return;
+
+  const { questions, answers } = STATE.session;
+  const n           = questions.length;
+  const answered    = Object.keys(answers).length;
+  const unanswered  = n - answered;
+  const secsLeft    = window.BlockTimer ? BlockTimer.getSecsLeft() : 0;
+
+  root.innerHTML = `
+    <div class="block-timer-wrap" id="block-timer-wrap">
+      ${window.BlockTimer ? BlockTimer.renderHTML(
+          SUBJECTS[STATE.session.subject] ?? 'Bloque',
+          STATE.session.blockSecsTotal,
+          secsLeft
+        ) : ''}
+    </div>
+    <div class="panel" style="max-width:500px;margin:var(--space-8) auto;text-align:center">
+      <div style="font-size:2.5rem;margin-bottom:var(--space-4)">📋</div>
+      <h2 style="margin-bottom:var(--space-2)">¿Enviar respuestas?</h2>
+      <p style="color:var(--text-muted);margin-bottom:var(--space-6);font-size:.9rem">
+        Revisa tu progreso antes de enviar.
+      </p>
+
+      <div class="stats-grid" style="margin-bottom:var(--space-6)">
+        <div class="stat-card">
+          <div class="stat-value" style="color:var(--accent-green-light)">${answered}</div>
+          <div class="stat-label">Respondidas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color:${unanswered > 0 ? 'var(--warning)' : 'var(--text-muted)'}">${unanswered}</div>
+          <div class="stat-label">Sin responder</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color:var(--info)">${formatTime(secsLeft)}</div>
+          <div class="stat-label">Tiempo restante</div>
+        </div>
+      </div>
+
+      <!-- Mapa de preguntas en resumen -->
+      <div id="question-map" class="question-map-container" style="margin-bottom:var(--space-6)"></div>
+
+      ${unanswered > 0 ? `
+        <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4);margin-bottom:var(--space-4);font-size:.85rem;color:#fbbf24">
+          ⚠️ Tienes <strong>${unanswered}</strong> pregunta${unanswered > 1 ? 's' : ''} sin responder.
+          Puedes volver y responderlas antes de enviar.
+        </div>` : ''}
+
+      <div style="display:flex;gap:var(--space-3);justify-content:center;flex-wrap:wrap">
+        <button class="btn btn--ghost" onclick="STATE.session.currentIdx = ${n - 1}; renderQuestion()">← Volver</button>
+        <button class="btn btn--primary" onclick="window.submitBlock()" id="btn-submit-block">Enviar ✓</button>
+      </div>
+    </div>`;
+
+  // Renderizar mapa de navegación en el resumen
+  if (window.QuestionNav) {
+    QuestionNav.render(n, -1, answers, questions, (idx) => {
+      STATE.session.currentIdx = idx;
+      renderQuestion();
     });
-    // Actualizar weak_topic también
-    await supabase.rpc('update_weak_topic', {
-      p_student_id: STATE.student.id,
-      p_subject:    q.subject,
-      p_topic:      q.topic,
-      p_is_correct: false,
-    });
-  } catch {}
-
-  showToast('Tiempo agotado', 'Pasando a la siguiente pregunta…', '⏰', 'error');
-  STATE.session.timerLeft  = STATE.session.secsPerQ ?? SECS_PER_Q;
-  STATE.session.currentIdx++;
-  renderQuestion();
+  }
 }
 
-const formatTime = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2,'0')}`;
+/**
+ * Envía todas las respuestas pendientes (sin responder) como incorrectas,
+ * luego termina la sesión.
+ */
+window.submitBlock = async function() {
+  stopBlockTimer();
+
+  // Marcar preguntas sin responder como omitidas
+  const { questions, answers, id: sessionId } = STATE.session;
+  const pending = questions.filter(q => !answers[q.id]);
+
+  if (pending.length > 0) {
+    const inserts = pending.map(q => ({
+      student_id:     STATE.student.id,
+      question_id:    q.id,
+      selected_index: 0,
+      is_correct:     false,
+      time_seconds:   STATE.session.blockSecsTotal ?? BLOCK_SECS_DEFAULT,
+      session_id:     sessionId,
+    }));
+    try {
+      await supabase.from('student_answers').insert(inserts);
+      // Actualizar weak_topics en background
+      pending.forEach(q => {
+        supabase.rpc('update_weak_topic', {
+          p_student_id: STATE.student.id,
+          p_subject:    q.subject,
+          p_topic:      q.topic,
+          p_is_correct: false,
+        }).catch(() => {});
+        // Registrar en answers locales también
+        STATE.session.answers[q.id] = {
+          selected_index: -1,
+          is_correct:     false,
+          time_seconds:   STATE.session.blockSecsTotal,
+        };
+      });
+    } catch (err) {
+      console.error('[O500] submitBlock insert omitidas:', err.message);
+    }
+  }
+
+  endSession();
+};
 
 // ══════════════════════════════════════════════════════════════
 //  PERSISTENCIA LOCAL (reanudar sesión)
@@ -1550,25 +1708,29 @@ async function startSessionByTopic(subject, topic) {
   if (window.AudioEvents)        AudioEvents.stopGuardianAmbient();
   if (window.AnswerLock)         AnswerLock.clearAll();
 
-  const topicSecs = SECS_PER_Q_BY_SUBJECT[subject] ?? SECS_PER_Q;
+  const n          = shuffled.length;
+  const blockSecs  = Math.round((BLOCK_SECS_BY_SUBJECT[subject] ?? BLOCK_SECS_DEFAULT) * (n / 20));
   STATE.session = {
-    id:          crypto.randomUUID(),
-    subject:     subject,
-    topic:       topic,
-    questions:   shuffled,
-    currentIdx:  0,
-    answers:     {},
-    timerLeft:   topicSecs,
-    secsPerQ:    topicSecs,
-    timerHandle: null,
-    started:     true,
-    startedAt:   new Date().toISOString(),
-    sessionType: 'practice',
+    id:             crypto.randomUUID(),
+    subject:        subject,
+    topic:          topic,
+    questions:      shuffled,
+    currentIdx:     0,
+    answers:        {},
+    blockSecsTotal: blockSecs,
+    blockSecsLeft:  blockSecs,
+    timerLeft:      blockSecs,
+    secsPerQ:       SECS_PER_Q_BY_SUBJECT[subject] ?? SECS_PER_Q,
+    timerHandle:    null,
+    started:        true,
+    startedAt:      new Date().toISOString(),
+    sessionType:    'practice',
   };
 
   if (window.SessionPersistence) SessionPersistence.initAutoSave();
   saveSessionToStorage();
   renderQuestion();
+  startBlockTimer();
 }
 
 // ══════════════════════════════════════════════════════════════

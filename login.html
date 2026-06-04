@@ -410,6 +410,28 @@
       <!-- Mensajes de estado -->
       <div class="auth-message" id="auth-msg" role="alert" aria-live="polite"></div>
 
+      <!-- Código VIP / Acceso tester -->
+      <div class="login-vip-section">
+        <div class="login-vip-divider"><span>¿Tienes un código de acceso?</span></div>
+        <div class="login-vip-field">
+          <input
+            type="text"
+            id="vip-code-input"
+            class="vip-code-input"
+            placeholder="AURA-XXXX-XXXX"
+            maxlength="14"
+            autocapitalize="characters"
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="Código de acceso VIP"
+          />
+          <button type="button" id="vip-code-btn" class="vip-code-btn" aria-label="Activar código">
+            Activar
+          </button>
+        </div>
+        <p id="vip-code-status" class="vip-code-status" aria-live="polite"></p>
+      </div>
+
       <!-- Footer -->
       <div class="login-footer">
         Al registrarte aceptas los
@@ -475,12 +497,68 @@
 
   <!-- Supabase UMD — sin módulos ES, funciona desde file:// -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="lib/invite-codes.js"></script>
   <script>
     const SUPABASE_URL      = 'https://bekvduhzoxufixykxphy.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJla3ZkdWh6b3h1Zml4eWt4cGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NzIwNjksImV4cCI6MjA5MjM0ODA2OX0.S_fSyBAJ1IS9E3H_W7I8vXwEhRqnczNAHa1S7kvKxvM';
 
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { persistSession: true, autoRefreshToken: true },
+    });
+    // Alias para invite-codes.js (que usa la variable global `supabase`)
+    var supabase = sb;
+
+    // ── Lógica del campo VIP ───────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      const vipInput  = document.getElementById('vip-code-input');
+      const vipBtn    = document.getElementById('vip-code-btn');
+      const vipStatus = document.getElementById('vip-code-status');
+
+      function setVipStatus(msg, type) {
+        if (!vipStatus) return;
+        vipStatus.textContent = msg;
+        vipStatus.className   = `vip-code-status vip-code-status--${type}`;
+      }
+
+      // Auto-formato mientras escribe: XXXX-XXXX-XXXX
+      vipInput?.addEventListener('input', e => {
+        let v = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+        const p = [v.slice(0,4), v.slice(4,8), v.slice(8,12)].filter(Boolean);
+        e.target.value = p.join('-').slice(0, 14);
+      });
+
+      vipInput?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') vipBtn?.click();
+      });
+
+      vipBtn?.addEventListener('click', async () => {
+        const code = vipInput?.value?.trim();
+        if (!code || code.length < 4) { setVipStatus('Ingresa el código completo.', 'error'); return; }
+
+        setVipStatus('Verificando...', 'loading');
+        vipBtn.disabled = true;
+
+        try {
+          const { data: { session } } = await sb.auth.getSession();
+          if (session && window.InviteCodes) {
+            const result = await InviteCodes.consume(code, session.user.id);
+            if (result?.ok) {
+              setVipStatus('🎉 ¡Código activado! Redirigiendo...', 'success');
+              if (window.Plans) Plans.invalidateCache();
+              setTimeout(() => window.location.href = './app.html', 1500);
+            } else {
+              setVipStatus(result?.error ?? 'Código inválido o ya agotado.', 'error');
+            }
+          } else {
+            sessionStorage.setItem('pending_invite', code);
+            setVipStatus('✓ Código guardado. Inicia sesión para activarlo.', 'pending');
+          }
+        } catch (err) {
+          setVipStatus('Error al verificar. Intenta de nuevo.', 'error');
+        } finally {
+          vipBtn.disabled = false;
+        }
+      });
     });
 
     // ── Helpers de perfil ──────────────────────────────────
@@ -547,6 +625,7 @@
             );
           }
           if (!profile) return;
+          if (window.InviteCodes) await InviteCodes.consumePending(data.user.id);
           window.location.href = profile.role === 'parent' ? './dashboard-padre.html' : './app.html';
 
         } else {
@@ -581,6 +660,7 @@
           if (data.session) {
             const profile = await ensureProfile(user, currentRole, username, grade);
             if (profile) {
+              if (window.InviteCodes) await InviteCodes.consumePending(user.id);
               showMessage('✅ ¡Cuenta creada! Redirigiendo…', 'success');
               setTimeout(() => {
                 window.location.href = currentRole === 'parent' ? './dashboard-padre.html' : './app.html';

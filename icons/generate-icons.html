@@ -28,53 +28,123 @@
   <div class="grid" id="icon-grid"></div>
 
   <script>
-    const VIOLET = '#7C3AED';
-    const BG     = '#0A0A0F';
-
     const ICONS = [
-      { name: 'icon-72.png',          size: 72,  maskable: false },
-      { name: 'icon-96.png',          size: 96,  maskable: false },
-      { name: 'icon-128.png',         size: 128, maskable: false },
-      { name: 'icon-144.png',         size: 144, maskable: false },
-      { name: 'icon-152.png',         size: 152, maskable: false },
-      { name: 'icon-192.png',         size: 192, maskable: false },
-      { name: 'icon-384.png',         size: 384, maskable: false },
-      { name: 'icon-512.png',         size: 512, maskable: false },
-      { name: 'icon-512-maskable.png',size: 512, maskable: true  },
-      { name: 'apple-touch-icon-180.png', size: 180, maskable: false },
-      { name: 'apple-touch-icon-152.png', size: 152, maskable: false },
-      { name: 'apple-touch-icon-120.png', size: 120, maskable: false },
-      { name: 'apple-touch-icon-76.png',  size: 76,  maskable: false },
-      { name: 'shortcut-train.png',   size: 96,  maskable: false, shortcut: 'train' },
-      { name: 'shortcut-guardian.png',size: 96,  maskable: false, shortcut: 'guardian' },
+      { name: 'icon-72.png',               size: 72,  maskable: false },
+      { name: 'icon-96.png',               size: 96,  maskable: false },
+      { name: 'icon-128.png',              size: 128, maskable: false },
+      { name: 'icon-144.png',              size: 144, maskable: false },
+      { name: 'icon-152.png',              size: 152, maskable: false },
+      { name: 'icon-192.png',              size: 192, maskable: false },
+      { name: 'icon-384.png',              size: 384, maskable: false },
+      { name: 'icon-512.png',              size: 512, maskable: false },
+      { name: 'icon-512-maskable.png',     size: 512, maskable: true  },
+      { name: 'apple-touch-icon-180.png',  size: 180, maskable: false },
+      { name: 'apple-touch-icon-152.png',  size: 152, maskable: false },
+      { name: 'apple-touch-icon-120.png',  size: 120, maskable: false },
+      { name: 'apple-touch-icon-76.png',   size: 76,  maskable: false },
+      { name: 'shortcut-train.png',        size: 96,  maskable: false, shortcut: 'train' },
+      { name: 'shortcut-guardian.png',     size: 96,  maskable: false, shortcut: 'guardian' },
     ];
 
     function drawIcon(canvas, size, maskable, shortcut) {
-      const ctx  = canvas.getContext('2d');
-      const pad  = maskable ? size * 0.1 : 0;  // 10% safe zone para maskable
-      const r    = (size - pad * 2) / 2;
+      const ctx = canvas.getContext('2d');
+      const cx  = size / 2;
+      const cy  = size / 2;
 
-      // Fondo
-      ctx.fillStyle = VIOLET;
-      ctx.fillRect(0, 0, size, size);
+      // ── Fondo con bordes redondeados ────────────────────────────
+      const cornerR = size * 0.2;
+      ctx.beginPath();
+      ctx.moveTo(cornerR, 0);
+      ctx.lineTo(size - cornerR, 0);
+      ctx.quadraticCurveTo(size, 0, size, cornerR);
+      ctx.lineTo(size, size - cornerR);
+      ctx.quadraticCurveTo(size, size, size - cornerR, size);
+      ctx.lineTo(cornerR, size);
+      ctx.quadraticCurveTo(0, size, 0, size - cornerR);
+      ctx.lineTo(0, cornerR);
+      ctx.quadraticCurveTo(0, 0, cornerR, 0);
+      ctx.closePath();
 
-      // Círculo interior oscuro (solo para "any")
-      if (!maskable) {
-        ctx.fillStyle = BG;
-        ctx.beginPath();
-        ctx.arc(size / 2, size / 2, r * 0.9, 0, Math.PI * 2);
-        ctx.fill();
+      // Gradiente diagonal oscuro → violeta
+      const grad = ctx.createLinearGradient(0, 0, size, size);
+      grad.addColorStop(0,   '#1A0A2E');
+      grad.addColorStop(0.5, '#2D1B69');
+      grad.addColorStop(1,   '#7C3AED');
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Ícono de shortcut: más simple
+      if (shortcut === 'train') {
+        ctx.font = `${Math.round(size * 0.55)}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⚡', cx, cy + size * 0.04);
+        return;
+      }
+      if (shortcut === 'guardian') {
+        ctx.font = `${Math.round(size * 0.55)}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🦋', cx, cy + size * 0.04);
+        return;
       }
 
-      // Emoji
-      const emoji = shortcut === 'train' ? '⚡'
-                  : shortcut === 'guardian' ? '🦋'
-                  : '🎯';
-      const fontSize = Math.round(size * (maskable ? 0.45 : 0.5));
-      ctx.font      = `${fontSize}px serif`;
+      // ── Ícono principal: diana + "500" ──────────────────────────
+      const pad  = maskable ? size * 0.18 : size * 0.1;
+      const maxR = (size / 2) - pad;
+
+      // Anillos de diana (exterior → interior)
+      const rings = [
+        { r: maxR,       color: 'rgba(255,255,255,0.12)' },
+        { r: maxR * 0.7, color: 'rgba(255,255,255,0.18)' },
+        { r: maxR * 0.42,color: 'rgba(255,255,255,0.25)' },
+      ];
+      rings.forEach(({ r, color }) => {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = size * 0.025;
+        ctx.stroke();
+      });
+
+      // Punto central brillante
+      const dotR = maxR * 0.15;
+      const dotGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, dotR);
+      dotGrad.addColorStop(0, '#FFFFFF');
+      dotGrad.addColorStop(1, '#C4B5FD');
+      ctx.beginPath();
+      ctx.arc(cx, cy, dotR, 0, Math.PI * 2);
+      ctx.fillStyle = dotGrad;
+      ctx.fill();
+
+      // Texto "+500" en la parte inferior de la diana
+      const textY   = cy + maxR * 0.52;
+      const fontSize = Math.round(size * 0.19);
+      ctx.font      = `900 ${fontSize}px 'Arial Black', Arial, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(emoji, size / 2, size / 2 + fontSize * 0.06);
+
+      // Sombra suave
+      ctx.shadowColor   = 'rgba(0,0,0,0.6)';
+      ctx.shadowBlur    = size * 0.04;
+      ctx.shadowOffsetY = size * 0.01;
+
+      // Contorno blanco + relleno dorado
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.lineWidth   = size * 0.01;
+      ctx.strokeText('+500', cx, textY);
+      ctx.fillStyle   = '#F5E642';
+      ctx.fillText('+500', cx, textY);
+
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur  = 0;
+
+      // Texto "AURA" pequeño arriba
+      const auraSize = Math.round(size * 0.1);
+      ctx.font        = `700 ${auraSize}px Arial, sans-serif`;
+      ctx.fillStyle   = 'rgba(196,181,253,0.85)';
+      ctx.letterSpacing = '0.15em';
+      ctx.fillText('AURA', cx, cy - maxR * 0.55);
     }
 
     function makeCanvas(icon) {
@@ -99,8 +169,8 @@
 
     ICONS.forEach(icon => {
       const canvas = makeCanvas(icon);
-      const preview = document.createElement('canvas');
       const previewSize = Math.min(icon.size, 96);
+      const preview = document.createElement('canvas');
       preview.width  = previewSize;
       preview.height = previewSize;
       preview.getContext('2d').drawImage(canvas, 0, 0, previewSize, previewSize);
@@ -127,7 +197,6 @@
       for (let i = 0; i < canvases.length; i++) {
         const { canvas, name } = canvases[i];
         downloadCanvas(canvas, name);
-        // Pequeña pausa para que el navegador no bloquee las descargas
         await new Promise(r => setTimeout(r, 300));
       }
     };

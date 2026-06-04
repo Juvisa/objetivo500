@@ -1,0 +1,87 @@
+# .github/workflows/push-notifications.yml
+# Objetivo 500 — GitHub Actions como scheduler de push notifications
+# ─────────────────────────────────────────────────────────────────
+# Dispara el endpoint /api/notifications/cron 3 veces al día
+# en hora Colombia (UTC-5):
+#   - 7:30 AM COL  = 12:30 UTC
+#   - 2:30 PM COL  = 19:30 UTC
+#   - 8:00 PM COL  = 01:00 UTC (día siguiente)
+#
+# SETUP REQUERIDO en GitHub → Settings → Secrets → Actions:
+#   VERCEL_CRON_URL   = https://objetivo500.vercel.app
+#   CRON_SECRET       = (el mismo valor que pusiste en Vercel Dashboard)
+
+name: Push Notifications — Objetivo 500
+
+on:
+  schedule:
+    # 7:30 AM Colombia (UTC-5) = 12:30 UTC
+    - cron: '30 12 * * *'
+    # 2:30 PM Colombia (UTC-5) = 19:30 UTC
+    - cron: '30 19 * * *'
+    # 8:00 PM Colombia (UTC-5) = 01:00 UTC
+    - cron: '0 1 * * *'
+
+  # Permite disparar manualmente desde GitHub para pruebas
+  workflow_dispatch:
+    inputs:
+      turno:
+        description: 'Turno a enviar'
+        required: true
+        default: 'manana'
+        type: choice
+        options: [manana, tarde, noche]
+
+jobs:
+  send-notifications:
+    name: Enviar recordatorios
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Determinar turno según horario
+        id: turno
+        run: |
+          # Si se disparó manualmente, usar el input
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "value=${{ github.event.inputs.turno }}" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Determinar turno por hora UTC actual
+          HOUR=$(date -u +%H)
+          MIN=$(date -u +%M)
+
+          if [ "$HOUR" = "12" ]; then
+            echo "value=manana" >> $GITHUB_OUTPUT
+          elif [ "$HOUR" = "19" ]; then
+            echo "value=tarde" >> $GITHUB_OUTPUT
+          else
+            echo "value=noche" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Enviar notificaciones push
+        run: |
+          TURNO="${{ steps.turno.outputs.value }}"
+          echo "Enviando turno: $TURNO"
+
+          RESPONSE=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.VERCEL_CRON_URL }}/api/notifications/cron?turno=$TURNO")
+
+          echo "HTTP Status: $RESPONSE"
+          echo "Response body:"
+          cat /tmp/response.json
+
+          if [ "$RESPONSE" != "200" ]; then
+            echo "ERROR: El endpoint devolvió HTTP $RESPONSE"
+            exit 1
+          fi
+
+      - name: Log resultado
+        if: always()
+        run: |
+          echo "Workflow completado para turno: ${{ steps.turno.outputs.value }}"
+          echo "Hora UTC: $(date -u)"
+          echo "Hora Colombia (aprox): $(TZ='America/Bogota' date)"
