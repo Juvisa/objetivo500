@@ -1187,25 +1187,30 @@ async function endSession() {
   const root = document.getElementById('app-root');
   if (!root) return;
 
+  // Mostrar puntaje inmediatamente + skeleton del diagnóstico
   root.innerHTML = `
-    <div class="panel" style="max-width:500px;margin:var(--space-10) auto;text-align:center">
-      <div style="font-size:3.5rem;margin-bottom:var(--space-4)">${pct >= 80 ? '🏆' : pct >= 60 ? '👍' : '💪'}</div>
-      <h2 style="margin-bottom:var(--space-2)">Sesión completada</h2>
-      <div class="score-badge" style="font-size:4rem">${correct}/${total}</div>
-      <p class="score-label">${pct}% de aciertos</p>
-
-      <div class="stats-grid" style="margin:var(--space-6) 0">
-        <div class="stat-card">
-          <div class="stat-value green">${correct}</div>
-          <div class="stat-label">Correctas</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" style="color:var(--error)">${total - correct}</div>
-          <div class="stat-label">Errores</div>
+    <div class="panel resultado-container" style="max-width:520px;margin:var(--space-10) auto">
+      <div style="text-align:center;padding-bottom:var(--space-6);border-bottom:1px solid var(--border)">
+        <div style="font-size:3rem;margin-bottom:var(--space-3)">${pct >= 80 ? '🏆' : pct >= 60 ? '👍' : '💪'}</div>
+        <h2 style="margin-bottom:var(--space-1)">Sesión completada</h2>
+        <div class="score-badge" style="font-size:3.5rem">${correct}/${total}</div>
+        <p class="score-label">${pct}% de aciertos</p>
+        <div class="stats-grid" style="margin:var(--space-5) 0 0">
+          <div class="stat-card">
+            <div class="stat-value green">${correct}</div>
+            <div class="stat-label">Correctas</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" style="color:var(--error)">${total - correct}</div>
+            <div class="stat-label">Errores</div>
+          </div>
         </div>
       </div>
 
-      <!-- Repaso de errores -->
+      <div id="diagnostico-ia-section">
+        ${!isPerfect ? _renderSkeletonDiagnostico() : '<p style="text-align:center;color:var(--accent-green-light);font-weight:600;padding:var(--space-6) 0">¡Sesión perfecta! Sin errores 🎉</p>'}
+      </div>
+
       ${renderReview()}
 
       <div style="display:flex;gap:var(--space-3);justify-content:center;margin-top:var(--space-6)">
@@ -1214,8 +1219,104 @@ async function endSession() {
       </div>
     </div>`;
 
+  // Fire-and-forget: llenar sección diagnóstico sin bloquear el render
+  if (!isPerfect && window.Diagnostico && window.IaDiagnostico) {
+    _cargarDiagnosticoIA(
+      questions, answers,
+      STATE.session.subject,
+      STATE.session.blockSecsTotal,
+      STATE.session.blockSecsLeft,
+    ).catch(() => {});
+  }
+
   // Actualizar dashboard datos
   await loadStudentData();
+}
+
+// ─── DIAGNÓSTICO IA — helpers ──────────────────────────────────────────────
+
+function _renderSkeletonDiagnostico() {
+  return `
+    <div class="diagnostico-wrap" aria-busy="true" aria-label="Generando diagnóstico…">
+      <div class="diagnostico-header-tag">PLAN DE ACCIÓN — analizando tus errores…</div>
+      <div class="skel-card"></div>
+      <div class="skel-card skel-card--mid"></div>
+      <div class="skel-card skel-card--sm"></div>
+    </div>`;
+}
+
+async function _cargarDiagnosticoIA(questions, answers, subject, blockSecsTotal, blockSecsLeft) {
+  const section = document.getElementById('diagnostico-ia-section');
+  if (!section) return;
+
+  const payload = Diagnostico.construirPayload({ subject, questions, answers, blockSecsTotal, blockSecsLeft });
+
+  if (Object.keys(payload.erroresPorTema).length === 0) {
+    section.innerHTML = '';
+    return;
+  }
+
+  const diag = await IaDiagnostico.generarDiagnostico(payload);
+
+  if (!section.isConnected) return; // usuario navegó fuera
+
+  if (diag?.quiebre_principal) {
+    section.innerHTML = _renderDiagnosticoIA(diag);
+  } else {
+    section.innerHTML = _renderFallbackDiagnostico(payload.erroresPorTema);
+  }
+}
+
+function _renderDiagnosticoIA(diag) {
+  const fuentes = (diag.fuentes_recomendadas ?? []).slice(0, 3);
+  return `
+    <div class="diagnostico-wrap">
+      <div class="diagnostico-header-tag">PLAN DE ACCIÓN PERSONALIZADO</div>
+      <p class="diagnostico-subtitulo">Generado por IA según tus errores específicos</p>
+
+      <div class="diag-card diag-card--quiebre">
+        <div class="diag-card__label">DEBILIDAD DETECTADA</div>
+        <h3 class="diag-card__title">${escapeHtml(diag.quiebre_principal.descripcion)}</h3>
+        <p class="diag-card__example">Ejemplo: ${escapeHtml(diag.quiebre_principal.ejemplo)}</p>
+      </div>
+
+      ${fuentes.length ? `
+      <div class="diag-card">
+        <div class="diag-card__label">ESTUDIA AQUÍ ESTA NOCHE</div>
+        ${fuentes.map(f => `
+          <a class="diag-fuente" href="${escapeHtml(f.url)}" target="_blank" rel="noopener noreferrer">
+            <div class="diag-fuente__info">
+              <span class="diag-fuente__nombre">${escapeHtml(f.nombre)}</span>
+              <span class="diag-fuente__desc">${escapeHtml(f.descripcion)}</span>
+            </div>
+            <span class="diag-fuente__arrow">→</span>
+          </a>`).join('')}
+      </div>` : ''}
+
+      <div class="diag-card diag-card--reto">
+        <div class="diag-card__label">TU MISIÓN ANTES DEL PRÓXIMO BLOQUE</div>
+        <p class="diag-card__reto">${escapeHtml(diag.micro_reto)}</p>
+      </div>
+
+      <div class="diag-cierre">
+        <p>"${escapeHtml(diag.frase_cierre)}"</p>
+      </div>
+    </div>`;
+}
+
+function _renderFallbackDiagnostico(erroresPorTema) {
+  const tops = Object.entries(erroresPorTema).slice(0, 3);
+  return `
+    <div class="diagnostico-wrap">
+      <div class="diagnostico-header-tag">TEMAS A REPASAR</div>
+      <div class="diag-card">
+        ${tops.map(([tema, n]) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-3) 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:.9rem">${escapeHtml(tema.replace(/_/g, ' '))}</span>
+            <span style="color:var(--error);font-weight:600">${n} error${n > 1 ? 'es' : ''}</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
 }
 
 function renderReview() {

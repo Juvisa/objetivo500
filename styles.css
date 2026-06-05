@@ -2644,3 +2644,156 @@ body.hatch-active .support-fab {
   opacity: .4;
   cursor: not-allowed;
 }
+
+/* ─── SECCIÓN 44: DIAGNÓSTICO IA ──────────────────────────────────────────── */
+
+.diagnostico-wrap {
+  padding: var(--space-6) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--space-6);
+}
+
+.diagnostico-header-tag {
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--aura-gold, #F59E0B);
+  margin-bottom: var(--space-1);
+}
+
+.diagnostico-subtitulo {
+  font-size: .8rem;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-2);
+}
+
+/* Tarjeta base */
+.diag-card {
+  background: var(--bg-elevated, #1A1A2E);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Variante: quiebre principal — borde izquierdo dorado */
+.diag-card--quiebre {
+  border-left: 3px solid var(--aura-gold, #F59E0B);
+}
+
+/* Variante: micro-reto — borde izquierdo verde */
+.diag-card--reto {
+  border-left: 3px solid var(--accent-green, #10B981);
+}
+
+.diag-card__label {
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.diag-card__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.diag-card__example {
+  font-size: .8rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 0;
+}
+
+.diag-card__reto {
+  font-size: .9rem;
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Fila de recurso recomendado */
+.diag-fuente {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  gap: var(--space-3);
+  transition: opacity .15s;
+}
+.diag-fuente:last-child { border-bottom: none; }
+.diag-fuente:hover { opacity: .75; }
+
+.diag-fuente__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.diag-fuente__nombre {
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--aura-blue, #3B82F6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.diag-fuente__desc {
+  font-size: .75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.diag-fuente__arrow {
+  font-size: 1rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Frase de cierre */
+.diag-cierre {
+  text-align: center;
+  padding: var(--space-4) 0 0;
+}
+.diag-cierre p {
+  font-size: 1rem;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* Skeleton loader */
+@keyframes skel-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skel-card {
+  height: 90px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(90deg,
+    var(--bg-elevated, #1A1A2E) 25%,
+    var(--border, #1E1E2E) 50%,
+    var(--bg-elevated, #1A1A2E) 75%);
+  background-size: 800px 100%;
+  animation: skel-shimmer 1.4s infinite linear;
+}
+.skel-card--mid { height: 70px; }
+.skel-card--sm  { height: 50px; }

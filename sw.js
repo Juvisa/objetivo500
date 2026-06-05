@@ -38,6 +38,8 @@ const CACHE_ASSETS = [
   '/lib/audio-config.js',
   '/lib/audio-engine.js',
   '/lib/audio-events.js',
+  '/lib/diagnostico.js',
+  '/lib/ia-diagnostico.js',
   '/lib/block-timer.js',
   '/lib/question-nav.js',
   '/lib/push-manager.js',
