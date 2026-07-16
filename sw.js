@@ -2,8 +2,8 @@
 // VERSIÓN: incrementar CACHE_NAME en cada deploy con cambios de assets
 // REGLA: aura-v1 → aura-v2 → aura-v3 ...
 
-const CACHE_NAME   = 'aura-v11';
-const RUNTIME_NAME = 'aura-runtime-v11';
+const CACHE_NAME   = 'aura-v12';
+const RUNTIME_NAME = 'aura-runtime-v12';
 
 const CACHE_ASSETS = [
   // Páginas base
@@ -43,6 +43,11 @@ const CACHE_ASSETS = [
   '/lib/block-timer.js',
   '/lib/question-nav.js',
   '/lib/push-manager.js',
+  // Nuevos módulos ES
+  '/js/constants/tiempos.js',
+  '/js/simulacro/index.js',
+  '/js/simulacro/timer.js',
+  '/js/simulacro/navegacion.js',
 
   // Componentes
   '/components/bottom-nav.js',
