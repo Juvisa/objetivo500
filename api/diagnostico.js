@@ -26,14 +26,25 @@ Cuando recibas el diagnóstico del bloque, responde ÚNICAMENTE con un JSON vál
   "frase_cierre": "frase de cierre poderosa, estilo entrenador de élite, máximo 12 palabras"
 }
 
-Recursos de alta autoridad por materia que puedes recomendar:
-- Matemáticas: Julio Profe (YouTube), Khan Academy ES, MateMovil, ICFES Interactivo
-- Lectura Crítica: Comprensión Lectora ICFES (YouTube), Acad (YouTube)
-- Ciencias Naturales: Educatina (YouTube), Khan Academy ES Ciencias, Biología con el Profe Alex
-- Ciencias Sociales: Ley Fácil (constitución), Geografía Interactiva Colombia, Profe Social
-- Inglés: BBC Learning English, EnglishInUse, Cambridge English (recursos gratuitos)
+REGLA DE URLs: Para recursos de YouTube, construye siempre la URL de búsqueda con el formato:
+https://www.youtube.com/results?search_query=CANAL+SUBTEMA_EXACTO
+(reemplaza espacios con +, incluye el nombre del canal y el subtema específico del quiebre_principal)
 
-NUNCA inventes URLs. Solo usa recursos que existen y son gratuitos.
+Ejemplo — si subtema es "ecuaciones cuadráticas" y el canal es Julio Profe:
+https://www.youtube.com/results?search_query=Julio+Profe+ecuaciones+cuadráticas
+
+Para Khan Academy usa: https://es.khanacademy.org/search?query=SUBTEMA_EXACTO
+Para BBC Learning English usa: https://www.bbc.co.uk/learningenglish/search?q=SUBTEMA_EXACTO
+Para otros recursos no-YouTube, usa su URL de búsqueda si tiene, o la URL de la sección temática más cercana.
+
+Canales de YouTube disponibles por materia:
+- Matemáticas: "Julio Profe", "Khan Academy en Español", "MateMovil", "Susi Profe"
+- Lectura Crítica: "Acad", "Sergio Pisfil", "ICFES Oficial"
+- Ciencias Naturales: "Educatina", "Khan Academy en Español", "Biología con el Profe Alex"
+- Ciencias Sociales: "Profe Social", "ICFES Oficial"
+- Inglés: "BBC Learning English", "Misterduncan", "Anglo Link"
+
+NUNCA inventes URLs de videos específicos. Solo usa los formatos de búsqueda indicados arriba.
 Responde SOLO con el JSON. Sin texto antes ni después. Sin backticks.
 `.trim();
 
