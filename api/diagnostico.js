@@ -80,7 +80,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model:      'claude-sonnet-4-20250514',
+        model:      'claude-haiku-4-5-20251001',
         max_tokens: 1000,
         system:     SYSTEM_PROMPT,
         messages:   [{ role: 'user', content: buildUserMessage(payload) }],
@@ -89,7 +89,8 @@ export default async function handler(req, res) {
 
     if (!anthropicRes.ok) {
       const err = await anthropicRes.text();
-      return res.status(502).json({ error: 'Error en la API de IA', _debug: err });
+      console.error('[diagnostico] Anthropic error:', err);
+      return res.status(502).json({ error: 'Error en la API de IA' });
     }
 
     const data  = await anthropicRes.json();
