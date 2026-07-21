@@ -430,12 +430,12 @@ function renderDashboard() {
 
 function renderModeCards() {
   const modes = [
-    { id: 'diagnostico', emoji: '🔍', title: 'Diagnóstico',      desc: '20 preguntas mixtas',    onclick: `startSession(20, null, false)` },
-    { id: 'practica',    emoji: '🎯', title: 'Práctica libre',    desc: 'Elige una materia',      onclick: `showSubjectPicker(12)` },
-    { id: 'simulacro',   emoji: '🏆', title: 'Simulacro rápido',  desc: '45 preguntas mixtas',    onclick: `startSession(45, null, false)` },
-    { id: 'repaso',      emoji: '🔄', title: 'Repasar errores',   desc: 'Solo tus debilidades',   onclick: `startSession(15, null, true)` },
-    { id: 'reto',        emoji: '⚡', title: 'Reto Temático',     desc: 'Ataca tu mayor debilidad', onclick: `showTopicChallengePicker()` },
-    { id: 'batalla',     emoji: '⚔️', title: 'Batalla 1v1',      desc: '+300 XP al ganador',       onclick: `window.location.href='battle.html?new=1&student='+STATE.student.id` },
+    { id: 'diagnostico', emoji: '🔍', title: 'Diagnóstico',      desc: 'Descubre tus puntos ciegos',   onclick: `startSession(20, null, false)` },
+    { id: 'practica',    emoji: '🎯', title: 'Práctica libre',    desc: 'Elige una materia y entrena',  onclick: `showSubjectPicker(12)` },
+    { id: 'simulacro',   emoji: '🏆', title: 'Simulacro rápido',  desc: 'Prueba tus límites reales',    onclick: `startSession(45, null, false)` },
+    { id: 'repaso',      emoji: '🔄', title: 'Repasar errores',   desc: 'Convierte errores en puntos',  onclick: `startSession(15, null, true)` },
+    { id: 'reto',        emoji: '⚡', title: 'Reto Temático',     desc: 'Elimina tu mayor amenaza',     onclick: `showTopicChallengePicker()` },
+    { id: 'batalla',     emoji: '⚔️', title: 'Batalla 1v1',      desc: '+300 XP al ganador',           onclick: `window.location.href='battle.html?new=1&student='+STATE.student.id` },
   ];
 
   return modes.map(m => `
@@ -765,7 +765,7 @@ window.startSession = async function(n, subject, weakOnly = false) {
   const questions = await fetchSessionQuestions(n, subject);
 
   if (!questions || questions.length === 0) {
-    showToast('Sin preguntas', 'No se encontraron preguntas para esta configuración.', '⚠️', 'error');
+    showToast('Sin preguntas', 'No hay preguntas para esta combinación. Prueba con otra materia.', '⚠️', 'error');
     renderDashboard();
     return;
   }
@@ -1379,7 +1379,7 @@ function startBlockTimer() {
     },
     // onExpire: tiempo agotado → envío automático
     () => {
-      showToast('⏰ Tiempo agotado', 'El bloque terminó. Enviando respuestas…', '⏰', 'error');
+      showToast('Tiempo agotado', 'Guardando tus respuestas…', '⏰', 'error');
       setTimeout(() => endSession(), 1500);
     },
     resume
@@ -1544,8 +1544,8 @@ function clearSavedSession() {
 function offerResume(saved) {
   const remaining = saved.questions.length - saved.currentIdx;
   showToast(
-    'Sesión pendiente',
-    `Tenías ${remaining} preguntas por responder. Toca aquí para continuar.`,
+    'Sesión sin terminar',
+    `Te quedan ${remaining} preguntas. Toca para retomar donde lo dejaste.`,
     '🔄',
     'xp'
   );
@@ -1805,7 +1805,7 @@ async function startSessionByTopic(subject, topic) {
     .limit(30);
 
   if (error || !questions || questions.length === 0) {
-    showToast('Sin preguntas', `No hay preguntas para: ${topic}`, '⚠️', 'error');
+    showToast('Sin preguntas', `No encontramos preguntas sobre "${topic}". Elige otro tema.`, '⚠️', 'error');
     renderDashboard();
     return;
   }

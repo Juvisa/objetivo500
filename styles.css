@@ -97,12 +97,18 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  /* Elimina el resaltado azul/gris al tocar en iOS y Android */
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
   font-size: 16px;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  /* Previene el zoom por doble toque en toda la app */
+  touch-action: manipulation;
+  /* Altura dinámica del viewport (respeta barra de navegación del navegador) */
+  height: 100%;
 }
 
 body {
@@ -111,15 +117,27 @@ body {
   line-height: 1.6;
   color: var(--text-primary);
   background: var(--bg-base);
-  min-height: 100svh;
+  /* dvh = dynamic viewport height (se adapta cuando aparece/desaparece el teclado) */
+  min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden; /* evita scroll horizontal por contenido desbordado */
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
   max-width: 100vw;
+  /* Evita el efecto de "rebote" en iOS (overscroll) */
+  overscroll-behavior-y: none;
 }
 
 img, video, svg { display: block; max-width: 100%; }
 button, input, select, textarea { font-family: inherit; }
-button { cursor: pointer; border: none; background: none; }
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  /* Evita selección accidental de texto en botones */
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
 a { color: var(--accent-purple-light); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
@@ -143,9 +161,11 @@ h5 { font-size: .9rem;   font-weight: 600; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-3) var(--space-6);
-  background: rgba(10,10,15,.85);
-  backdrop-filter: blur(12px) saturate(1.5);
+  /* Safe area para iPhone con notch/Dynamic Island */
+  padding: calc(var(--space-3) + env(safe-area-inset-top, 0px)) var(--space-6) var(--space-3);
+  background: rgba(10,10,15,.92);
+  backdrop-filter: blur(16px) saturate(1.8);
+  -webkit-backdrop-filter: blur(16px) saturate(1.8);
   border-bottom: 1px solid var(--border);
 }
 
@@ -182,14 +202,21 @@ h5 { font-size: .9rem;   font-weight: 600; }
   border-radius: var(--radius-md);
   font-weight: 600;
   font-size: .875rem;
-  transition: opacity var(--transition-fast), transform var(--transition-fast),
+  transition: opacity 120ms ease, transform 120ms ease,
               background var(--transition-normal), border-color var(--transition-normal);
   white-space: nowrap;
   border: 1px solid transparent;
+  /* Touch target mínimo 48px globalmente (Apple HIG / Material 3) */
+  min-height: 48px;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.btn:active { transform: scale(.97); }
-.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn:active {
+  transform: scale(.95);
+  opacity: .85;
+}
+.btn:disabled { opacity: .45; cursor: not-allowed; pointer-events: none; }
 
 .btn--primary {
   background: var(--gradient-brand);
@@ -353,7 +380,7 @@ h5 { font-size: .9rem;   font-weight: 600; }
 /* ── 13. Toast notifications ─────────────────────────────────*/
 .toast-container {
   position: fixed;
-  bottom: var(--space-6);
+  bottom: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
   right: var(--space-6);
   z-index: var(--z-toast);
   display: flex;
@@ -530,55 +557,102 @@ h5 { font-size: .9rem;   font-weight: 600; }
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2-5);
+  gap: var(--space-3);
   margin-bottom: var(--space-6);
 }
 
+/* Tarjeta táctil nativa — mínimo 60px para uso cómodo con el pulgar */
 .option-item {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-4);
+  align-items: center;
+  gap: var(--space-3-5);
+  padding: var(--space-4) var(--space-4);
+  min-height: 60px;
   border: 2px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   cursor: pointer;
-  transition: border-color var(--transition-normal), background var(--transition-normal);
+  /* Transición más rápida que hover: feedback inmediato al tocar */
+  transition: border-color 120ms ease, background 120ms ease,
+              transform 100ms ease, box-shadow 120ms ease;
   background: var(--bg-elevated);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  /* Evita selección de texto al tocar rápido */
+  -webkit-user-drag: none;
+  position: relative;
+  overflow: hidden;
 }
 
-.option-item:hover { border-color: rgba(124,58,237,.4); }
+/* Efecto ripple / presión al tocar — feedback visual nativo */
+.option-item:active:not(.selected):not(.correct):not(.incorrect) {
+  transform: scale(.975);
+  border-color: rgba(124,58,237,.5);
+  background: rgba(124,58,237,.08);
+  box-shadow: 0 0 0 4px rgba(124,58,237,.08);
+}
+
+/* Hover solo en dispositivos con puntero fino (mouse, no dedo) */
+@media (hover: hover) and (pointer: fine) {
+  .option-item:hover:not(.selected):not(.correct):not(.incorrect) {
+    border-color: rgba(124,58,237,.35);
+    background: rgba(124,58,237,.05);
+  }
+}
 
 .option-item.selected {
   border-color: var(--accent-purple);
   background: var(--accent-purple-dim);
+  box-shadow: 0 0 0 1px var(--accent-purple), inset 0 1px 0 rgba(255,255,255,.05);
 }
 
 .option-item.correct {
   border-color: var(--accent-green);
   background: var(--accent-green-dim);
+  box-shadow: 0 0 0 1px var(--accent-green);
 }
 
 .option-item.incorrect {
   border-color: var(--error);
   background: rgba(239,68,68,.08);
+  box-shadow: 0 0 0 1px var(--error);
 }
 
+/* Letra identificadora — 36px para ser cómoda de leer y tocar */
 .option-letter {
-  width: 28px; height: 28px;
+  width: 36px; height: 36px;
   border-radius: 50%;
   border: 2px solid var(--border-light);
   display: grid; place-items: center;
-  font-size: .8rem; font-weight: 800;
+  font-size: .85rem; font-weight: 800;
   flex-shrink: 0;
   color: var(--text-secondary);
-  transition: background var(--transition-normal), border-color var(--transition-normal);
+  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
 }
 
-.option-item.selected  .option-letter { background: var(--accent-purple); border-color: var(--accent-purple); color: #fff; }
-.option-item.correct   .option-letter { background: var(--accent-green);  border-color: var(--accent-green);  color: #fff; }
-.option-item.incorrect .option-letter { background: var(--error);          border-color: var(--error);          color: #fff; }
+.option-item.selected  .option-letter {
+  background: var(--accent-purple);
+  border-color: var(--accent-purple);
+  color: #fff;
+  transform: scale(1.05);
+}
+.option-item.correct   .option-letter {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+  color: #fff;
+}
+.option-item.incorrect .option-letter {
+  background: var(--error);
+  border-color: var(--error);
+  color: #fff;
+}
 
-.option-text { font-size: .9rem; line-height: 1.5; color: var(--text-primary); }
+.option-text {
+  font-size: .95rem;
+  line-height: 1.55;
+  color: var(--text-primary);
+  flex: 1;
+}
 
 /* ── 18. Timer ───────────────────────────────────────────────*/
 .timer-display {
@@ -810,18 +884,50 @@ h5 { font-size: .9rem;   font-weight: 600; }
 
 /* ── 26. Responsive helpers ──────────────────────────────────*/
 @media (max-width: 640px) {
-  .navbar { padding: var(--space-3) var(--space-4); }
+  /* La navbar ya tiene safe-area-inset-top en su padding — no sobrescribir */
+  .navbar { padding-left: var(--space-4); padding-right: var(--space-4); }
   .panel  { padding: var(--space-4); }
-  .question-shell { margin: var(--space-4) var(--space-3); padding: var(--space-4); }
-  .timer-display  { top: auto; bottom: var(--space-4); right: var(--space-4); }
+  /* Question shell: bordes al ras en mobile = sensación más nativa */
+  .question-shell {
+    margin: var(--space-3) 0;
+    padding: var(--space-5) var(--space-4);
+    border-radius: var(--radius-xl);
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
+  .timer-display  { top: auto; bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px)); right: var(--space-4); }
   .area-row { grid-template-columns: 90px 1fr 36px; }
-  .toast-container { bottom: var(--space-4); right: var(--space-3); left: var(--space-3); }
+  .toast-container {
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    right: var(--space-3);
+    left: var(--space-3);
+  }
   .toast { max-width: 100%; }
+  /* Opciones más espaciadas en pantallas pequeñas */
+  .option-item { min-height: 64px; padding: var(--space-4) var(--space-3-5); }
+  .options-list { gap: var(--space-3); }
 }
 
 @media (max-width: 380px) {
   h1 { font-size: 1.5rem; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── Tarjetas de modo: estados táctiles ─────────────────────*/
+.mode-card, [onclick] {
+  touch-action: manipulation;
+}
+
+/* Micro-interacción para cualquier elemento clickeable con clase card */
+.card-tappable {
+  transition: transform 100ms ease, box-shadow 100ms ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.card-tappable:active {
+  transform: scale(.97);
+  box-shadow: none;
 }
 
 /* ── 27. Animación de celebración: partículas ────────────────*/
