@@ -39,6 +39,22 @@
   <meta property="og:image"       content="/icons/icon-512.png" />
   <meta property="og:type"        content="website" />
 
+  <!-- Sentry — monitoreo de errores en producción -->
+  <!-- Para activar: reemplaza TU_DSN_AQUI con el DSN de tu proyecto en sentry.io -->
+  <script
+    src="https://browser.sentry-cdn.com/7.99.0/bundle.tracing.min.js"
+    crossorigin="anonymous"
+  ></script>
+  <script>
+    if (window.Sentry && location.hostname !== 'localhost') {
+      Sentry.init({
+        dsn: 'TU_DSN_AQUI',
+        tracesSampleRate: 0.1,
+        environment: 'production',
+      });
+    }
+  </script>
+
   <!-- Service Worker -->
   <script>
     if ('serviceWorker' in navigator) {
@@ -103,11 +119,8 @@
 
   <!-- Supabase UMD — sin módulos ES -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/supabase-config.js"></script>
   <script>
-    // Globals que app.js usa directamente (var = verdadero global entre scripts)
-    var SUPABASE_URL      = 'https://bekvduhzoxufixykxphy.supabase.co';
-    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJla3ZkdWh6b3h1Zml4eWt4cGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NzIwNjksImV4cCI6MjA5MjM0ODA2OX0.S_fSyBAJ1IS9E3H_W7I8vXwEhRqnczNAHa1S7kvKxvM';
-
     var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { persistSession: true, autoRefreshToken: true },
     });

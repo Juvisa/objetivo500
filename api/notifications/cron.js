@@ -44,14 +44,17 @@ export default async function handler(req, res) {
 
   // ── 2. Validar CRON_SECRET ────────────────────────────────
   const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    console.error('[cron] CRON_SECRET no configurado en variables de entorno');
+    return res.status(500).json({ error: 'Configuración del servidor incompleta' });
+  }
+
   const authHeader = req.headers.authorization ?? '';
   const tokenParam = req.query.secret ?? '';
+  const provided   = authHeader.replace('Bearer ', '').trim() || tokenParam;
 
-  if (cronSecret) {
-    const provided = authHeader.replace('Bearer ', '') || tokenParam;
-    if (provided !== cronSecret) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+  if (provided !== cronSecret) {
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 
   // ── 3. Leer parámetro turno ───────────────────────────────

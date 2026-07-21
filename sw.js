@@ -2,8 +2,8 @@
 // VERSIÓN: incrementar CACHE_NAME en cada deploy con cambios de assets
 // REGLA: aura-v1 → aura-v2 → aura-v3 ...
 
-const CACHE_NAME   = 'aura-v14';
-const RUNTIME_NAME = 'aura-runtime-v14';
+const CACHE_NAME   = 'aura-v15';
+const RUNTIME_NAME = 'aura-runtime-v15';
 
 const CACHE_ASSETS = [
   // Páginas base
@@ -11,6 +11,9 @@ const CACHE_ASSETS = [
   '/index.html',
   '/login.html',
   '/app.html',
+
+  // Configuración central
+  '/supabase-config.js',
 
   // CSS y JS core
   '/styles.css',

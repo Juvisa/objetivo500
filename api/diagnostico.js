@@ -2,6 +2,8 @@
 // Proxy seguro a la API de Anthropic. La API key nunca llega al frontend.
 // Requiere variable de entorno ANTHROPIC_API_KEY en Vercel dashboard.
 
+import { createClient } from '@supabase/supabase-js';
+
 const SYSTEM_PROMPT = `
 Eres el tutor de alto rendimiento de ICFES Objetivo 500.
 Tu trabajo es analizar los errores de un estudiante colombiano en el simulacro Saber 11
@@ -70,6 +72,21 @@ Genera el Plan de Acción Personalizado.
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // ── Validar JWT de Supabase (solo usuarios autenticados) ──
+  const jwt = (req.headers.authorization ?? '').replace('Bearer ', '').trim();
+  if (!jwt) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    { auth: { persistSession: false } }
+  );
+  const { data: { user }, error: authError } = await supabase.auth.getUser(jwt);
+  if (authError || !user) {
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;

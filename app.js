@@ -257,6 +257,13 @@ function renderHeader() {
         style="font-size:.75rem;padding:4px 10px"
         aria-label="Cerrar sesión"
       >↩ Salir</button>
+      <button
+        onclick="deleteAccount()"
+        class="btn btn--ghost btn--sm"
+        title="Eliminar mi cuenta"
+        style="font-size:.75rem;padding:4px 10px;color:var(--error,#ef4444)"
+        aria-label="Eliminar cuenta"
+      >🗑 Cuenta</button>
     </div>
   `;
 }
@@ -1873,6 +1880,32 @@ window.toggleHackPrime = function(qId) {
 window.signOut = async function() {
   await supabase.auth.signOut();
   window.location.href = './login.html';
+};
+
+window.deleteAccount = async function() {
+  const confirmed = window.confirm(
+    '¿Seguro que quieres eliminar tu cuenta?\n\n' +
+    'Se borrarán permanentemente tu progreso, XP, rachas y todos tus datos.\n\n' +
+    'Esta acción NO se puede deshacer.'
+  );
+  if (!confirmed) return;
+
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token ?? '';
+
+  try {
+    const res = await fetch('/api/delete-account', {
+      method:  'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error('Error eliminando cuenta');
+    await supabase.auth.signOut();
+    alert('Cuenta eliminada. ¡Hasta pronto!');
+    window.location.href = './login.html';
+  } catch (err) {
+    console.error('[deleteAccount]', err);
+    alert('No se pudo eliminar la cuenta. Intenta de nuevo o contacta soporte.');
+  }
 };
 
 // ── Exponer para onclick en HTML ──────────────────────────────
