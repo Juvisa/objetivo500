@@ -89,8 +89,7 @@ export default async function handler(req, res) {
 
     if (!anthropicRes.ok) {
       const err = await anthropicRes.text();
-      console.error('[diagnostico] Anthropic error:', err);
-      return res.status(502).json({ error: 'Error en la API de IA' });
+      return res.status(502).json({ error: 'Error en la API de IA', _debug: err });
     }
 
     const data  = await anthropicRes.json();
