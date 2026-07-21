@@ -97,7 +97,11 @@ export default async function handler(req, res) {
     const texto = data.content?.[0]?.text ?? '{}';
 
     try {
-      const diagnostico = JSON.parse(texto.trim());
+      // Strip markdown code fences if model wraps JSON in ```json ... ```
+      const cleaned = texto.trim()
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/\s*```$/, '');
+      const diagnostico = JSON.parse(cleaned);
       return res.status(200).json(diagnostico);
     } catch {
       console.error('[diagnostico] JSON parse error. Raw text:', texto);
