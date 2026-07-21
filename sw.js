@@ -2,8 +2,8 @@
 // VERSIÓN: incrementar CACHE_NAME en cada deploy con cambios de assets
 // REGLA: aura-v1 → aura-v2 → aura-v3 ...
 
-const CACHE_NAME   = 'aura-v13';
-const RUNTIME_NAME = 'aura-runtime-v13';
+const CACHE_NAME   = 'aura-v14';
+const RUNTIME_NAME = 'aura-runtime-v14';
 
 const CACHE_ASSETS = [
   // Páginas base
@@ -142,7 +142,25 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Assets pre-cacheados → Cache First
+  // JS y CSS propios → Network First (siempre frescos; caché como fallback offline)
+  if (
+    url.hostname === self.location.hostname &&
+    (url.pathname.endsWith('.js') || url.pathname.endsWith('.css'))
+  ) {
+    event.respondWith(
+      fetch(request)
+        .then(res => {
+          if (res.ok) {
+            caches.open(RUNTIME_NAME).then(c => c.put(request, res.clone()));
+          }
+          return res;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // Otros assets pre-cacheados (HTML, íconos) → Cache First
   if (CACHE_ASSETS.includes(url.pathname)) {
     event.respondWith(
       caches.match(request)
