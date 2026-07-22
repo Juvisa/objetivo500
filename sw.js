@@ -2,8 +2,8 @@
 // VERSIÓN: incrementar CACHE_NAME en cada deploy con cambios de assets
 // REGLA: aura-v1 → aura-v2 → aura-v3 ...
 
-const CACHE_NAME   = 'aura-v16';
-const RUNTIME_NAME = 'aura-runtime-v16';
+const CACHE_NAME   = 'aura-v17';
+const RUNTIME_NAME = 'aura-runtime-v17';
 
 const CACHE_ASSETS = [
   // Páginas base
@@ -11,6 +11,9 @@ const CACHE_ASSETS = [
   '/index.html',
   '/login.html',
   '/app.html',
+
+  // Supabase UMD — respaldo local para cuando el CDN falla
+  '/vendor/supabase.min.js',
 
   // Configuración central
   '/supabase-config.js',
@@ -138,7 +141,10 @@ self.addEventListener('fetch', event => {
           return fetch(request).then(res => {
             if (res.ok) cache.put(request, res.clone());
             return res;
-          }).catch(() => cached);
+          }).catch(() => cached ?? new Response('', {
+            status: 503, statusText: 'CDN unavailable',
+            headers: { 'Content-Type': 'text/javascript' },
+          }));
         })
       )
     );

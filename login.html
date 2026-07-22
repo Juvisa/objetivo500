@@ -497,8 +497,9 @@
     }
   </script>
 
-  <!-- Supabase UMD — sin módulos ES, funciona desde file:// -->
+  <!-- Supabase UMD — CDN primario con respaldo local -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>if (!window.supabase) { document.write('<scr'+'ipt src="/vendor/supabase.min.js"><\/scr'+'ipt>'); }</script>
   <script src="/supabase-config.js"></script>
   <script src="lib/invite-codes.js"></script>
   <script>

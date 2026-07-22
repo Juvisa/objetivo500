@@ -918,7 +918,7 @@ window.selectOption = async function(index) {
 
   // Verificar límite de plan antes de registrar la respuesta
   // BYPASS_EXAM: desactivar para reactivar restricciones post-examen
-  const BYPASS_EXAM = true;
+  const BYPASS_EXAM = false;
   if (!BYPASS_EXAM && window.Plans && STATE.student) {
     const allowed = await Plans.canDo(STATE.student.id, 'answer_question');
     if (!allowed) {
