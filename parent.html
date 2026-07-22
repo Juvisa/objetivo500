@@ -69,11 +69,14 @@
   <div id="toast-container" class="toast-container" aria-live="assertive"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>if (!window.supabase) { document.write('<scr'+'ipt src="/vendor/supabase.min.js"><\/scr'+'ipt>'); }</script>
   <script src="/supabase-config.js"></script>
   <script>
-    var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true },
-    });
+    var supabase = window.supabase
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          auth: { persistSession: true, autoRefreshToken: true },
+        })
+      : null;
 
     function showToast(msg, type) {
       const c = document.getElementById('toast-container');
