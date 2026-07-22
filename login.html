@@ -53,26 +53,28 @@
   <!-- Tailwind Play CDN — prototipo; reemplazar por build para producción -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'aura-bg':      '#0A0A0F',
-            'aura-surface': '#111118',
-            'aura-surface2':'#1A1A2E',
-            'aura-border':  '#1E1E2E',
-            'aura-blue':    '#3B82F6',
-            'aura-violet':  '#7C3AED',
-            'aura-green':   '#10B981',
-            'aura-gold':    '#F59E0B',
-            'aura-text':    '#F1F5F9',
-            'aura-muted':   '#94A3B8',
-          },
-          minHeight: { 'touch': '44px' },
-          minWidth:  { 'touch': '44px' },
+    try {
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'aura-bg':      '#0A0A0F',
+              'aura-surface': '#111118',
+              'aura-surface2':'#1A1A2E',
+              'aura-border':  '#1E1E2E',
+              'aura-blue':    '#3B82F6',
+              'aura-violet':  '#7C3AED',
+              'aura-green':   '#10B981',
+              'aura-gold':    '#F59E0B',
+              'aura-text':    '#F1F5F9',
+              'aura-muted':   '#94A3B8',
+            },
+            minHeight: { 'touch': '44px' },
+            minWidth:  { 'touch': '44px' },
+          }
         }
-      }
-    }
+      };
+    } catch (e) {}
   </script>
   <style>
     /* ── Overrides específicos de login ── */

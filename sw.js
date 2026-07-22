@@ -2,8 +2,8 @@
 // VERSIÓN: incrementar CACHE_NAME en cada deploy con cambios de assets
 // REGLA: aura-v1 → aura-v2 → aura-v3 ...
 
-const CACHE_NAME   = 'aura-v15';
-const RUNTIME_NAME = 'aura-runtime-v15';
+const CACHE_NAME   = 'aura-v16';
+const RUNTIME_NAME = 'aura-runtime-v16';
 
 const CACHE_ASSETS = [
   // Páginas base

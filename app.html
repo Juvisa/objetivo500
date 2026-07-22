@@ -73,26 +73,28 @@
   <!-- Tailwind Play CDN — prototipo; reemplazar por build para producción -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'aura-bg':      '#0A0A0F',
-            'aura-surface': '#111118',
-            'aura-surface2':'#1A1A2E',
-            'aura-border':  '#1E1E2E',
-            'aura-blue':    '#3B82F6',
-            'aura-violet':  '#7C3AED',
-            'aura-green':   '#10B981',
-            'aura-gold':    '#F59E0B',
-            'aura-text':    '#F1F5F9',
-            'aura-muted':   '#94A3B8',
-          },
-          minHeight: { 'touch': '44px' },
-          minWidth:  { 'touch': '44px' },
+    try {
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'aura-bg':      '#0A0A0F',
+              'aura-surface': '#111118',
+              'aura-surface2':'#1A1A2E',
+              'aura-border':  '#1E1E2E',
+              'aura-blue':    '#3B82F6',
+              'aura-violet':  '#7C3AED',
+              'aura-green':   '#10B981',
+              'aura-gold':    '#F59E0B',
+              'aura-text':    '#F1F5F9',
+              'aura-muted':   '#94A3B8',
+            },
+            minHeight: { 'touch': '44px' },
+            minWidth:  { 'touch': '44px' },
+          }
         }
-      }
-    }
+      };
+    } catch (e) {}
   </script>
 </head>
 <body>
@@ -126,18 +128,31 @@
     });
 
     async function requireAuth(requiredRole = null) {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { window.location.href = './login.html'; return null; }
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user)    { window.location.href = './login.html'; return null; }
-      const { data: profile } = await supabase
-        .from('profiles').select('*').eq('user_id', user.id).maybeSingle();
-      if (!profile) { window.location.href = './login.html'; return null; }
-      if (requiredRole && profile.role !== requiredRole) {
-        window.location.href = profile.role === 'parent' ? './dashboard-padre.html' : './app.html';
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) { window.location.href = './login.html'; return null; }
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user)    { window.location.href = './login.html'; return null; }
+        const { data: profile, error: profileErr } = await supabase
+          .from('profiles').select('*').eq('user_id', user.id).maybeSingle();
+        if (profileErr) {
+          console.error('[requireAuth] Error al cargar perfil:', profileErr.message);
+          document.getElementById('app-root').innerHTML =
+            '<div style="padding:40px;text-align:center;color:#f87171"><p>Error de conexión. <a href="./app.html" style="color:#9D6EF5">Reintentar</a></p></div>';
+          return null;
+        }
+        if (!profile) { window.location.href = './login.html'; return null; }
+        if (requiredRole && profile.role !== requiredRole) {
+          window.location.href = profile.role === 'parent' ? './dashboard-padre.html' : './app.html';
+          return null;
+        }
+        return profile;
+      } catch (err) {
+        console.error('[requireAuth] Excepción:', err.message);
+        document.getElementById('app-root').innerHTML =
+          '<div style="padding:40px;text-align:center;color:#f87171"><p>Error al cargar la app. <a href="./app.html" style="color:#9D6EF5">Reintentar</a></p></div>';
         return null;
       }
-      return profile;
     }
 
     function subscribeToStudentChanges(studentId, callback) {
