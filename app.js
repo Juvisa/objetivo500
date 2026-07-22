@@ -252,18 +252,10 @@ function renderHeader() {
       />
       <button
         onclick="signOut()"
-        class="btn btn--ghost btn--sm"
+        class="btn--logout"
         title="Cerrar sesión"
-        style="font-size:.75rem;padding:4px 10px"
         aria-label="Cerrar sesión"
       >↩ Salir</button>
-      <button
-        onclick="deleteAccount()"
-        class="btn btn--ghost btn--sm"
-        title="Eliminar mi cuenta"
-        style="font-size:.75rem;padding:4px 10px;color:var(--error,#ef4444)"
-        aria-label="Eliminar cuenta"
-      >🗑 Cuenta</button>
     </div>
   `;
 }

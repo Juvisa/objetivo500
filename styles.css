@@ -192,6 +192,23 @@ h5 { font-size: .9rem;   font-weight: 600; }
   min-width: 0;
 }
 
+.btn--logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .75rem;
+  font-weight: 600;
+  padding: 6px 10px;
+  white-space: nowrap;
+  background: rgba(124,58,237,.12);
+  border: 1px solid rgba(124,58,237,.35);
+  border-radius: var(--radius-sm);
+  color: #c4b5fd;
+  cursor: pointer;
+  transition: background .15s;
+}
+.btn--logout:hover { background: rgba(124,58,237,.25); }
+
 /* ── 6. Botones ──────────────────────────────────────────────*/
 .btn {
   display: inline-flex;
@@ -1588,15 +1605,6 @@ h5 { font-size: .9rem;   font-weight: 600; }
   }
   .navbar__actions {
     gap: var(--space-2);
-  }
-  /* Botón Salir: solo ↩ en móvil */
-  .navbar__actions .btn--ghost {
-    font-size: 0;       /* oculta el texto */
-    padding: 6px 8px;
-  }
-  .navbar__actions .btn--ghost::before {
-    content: '↩';
-    font-size: .85rem;  /* muestra solo el ícono */
   }
   /* Avatar más pequeño */
   .navbar__actions .avatar--sm {
