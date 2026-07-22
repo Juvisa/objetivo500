@@ -502,9 +502,25 @@
   <script src="/supabase-config.js"></script>
   <script src="lib/invite-codes.js"></script>
   <script>
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true },
-    });
+    // Fallback: si supabase-config.js no cargó por algún motivo de caché/red
+    if (typeof SUPABASE_URL === 'undefined')
+      var SUPABASE_URL = 'https://bekvduhzoxufixykxphy.supabase.co';
+    if (typeof SUPABASE_ANON_KEY === 'undefined')
+      var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJla3ZkdWh6b3h1Zml4eWt4cGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NzIwNjksImV4cCI6MjA5MjM0ODA2OX0.S_fSyBAJ1IS9E3H_W7I8vXwEhRqnczNAHa1S7kvKxvM';
+
+    // Verificar que la librería de Supabase cargó
+    if (!window.supabase) {
+      document.getElementById('auth-msg').textContent =
+        'Error de conexión al cargar la app. Por favor recarga la página.';
+      document.getElementById('auth-msg').className = 'auth-message error';
+    }
+
+    var sb = window.supabase
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          auth: { persistSession: true, autoRefreshToken: true },
+        })
+      : null;
+
     // Alias para invite-codes.js (que usa la variable global `supabase`)
     var supabase = sb;
 
@@ -588,20 +604,47 @@
       e.preventDefault();
       clearMessage();
 
+      if (!sb) {
+        showMessage('Error de conexión. Por favor recarga la página e intenta de nuevo.', 'error');
+        return;
+      }
+
       const btn   = document.getElementById('btn-submit');
       const email = document.getElementById('email').value.trim();
       const pass  = document.getElementById('password').value;
 
-      if (!email || !pass) { showMessage('Por favor completa todos los campos.', 'error'); return; }
-      if (pass.length < 8) { showMessage('La contraseña debe tener al menos 8 caracteres.', 'error'); return; }
+      if (!email || !pass) {
+        showMessage('Por favor completa todos los campos.', 'error');
+        document.getElementById('auth-msg').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return;
+      }
+      if (pass.length < 8) {
+        showMessage('La contraseña debe tener al menos 8 caracteres.', 'error');
+        document.getElementById('auth-msg').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return;
+      }
 
       btn.classList.add('loading');
       btn.disabled = true;
+
+      // Timeout de 12 segundos para detectar conexiones lentas
+      const timeoutMs = 12000;
+      let timedOut = false;
+      const timer = setTimeout(() => {
+        timedOut = true;
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        showMessage('La conexión está tardando demasiado. Revisa tu internet e intenta de nuevo.', 'error');
+        document.getElementById('auth-msg').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, timeoutMs);
 
       try {
         if (currentTab === 'login') {
           // ── Login ───────────────────────────────────────
           const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+          if (timedOut) return;
+          clearTimeout(timer);
+
           if (error) {
             const m = error.message.toLowerCase();
             if (m.includes('invalid') || m.includes('credentials') || m.includes('wrong')) {
@@ -609,10 +652,12 @@
             } else if (m.includes('not confirmed')) {
               showMessage('Debes confirmar tu correo primero. Revisa tu bandeja de entrada.', 'error');
             } else {
-              showMessage('Error: ' + error.message, 'error');
+              showMessage('Error al iniciar sesión: ' + error.message, 'error');
             }
+            document.getElementById('auth-msg').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             return;
           }
+
           // Asegurar perfil (fallback si el trigger falló)
           const meta = data.user.user_metadata ?? {};
           let profile = await getProfile();
@@ -624,12 +669,17 @@
               Number(meta.grade) || 11
             );
           }
-          if (!profile) return;
+          if (!profile) {
+            showMessage('No se pudo cargar tu perfil. Intenta de nuevo.', 'error');
+            document.getElementById('auth-msg').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            return;
+          }
           if (window.InviteCodes) await InviteCodes.consumePending(data.user.id);
           window.location.href = profile.role === 'parent' ? './dashboard-padre.html' : './app.html';
 
         } else {
           // ── Registro ────────────────────────────────────
+          clearTimeout(timer);
           const username = document.getElementById('username').value.trim();
           const grade    = parseInt(document.getElementById('grade')?.value ?? '11', 10);
 
@@ -672,10 +722,16 @@
           setTimeout(() => setTab('login'), 2000);
         }
       } catch (err) {
-        showMessage('Error inesperado: ' + err.message, 'error');
+        clearTimeout(timer);
+        if (!timedOut) {
+          showMessage('Error inesperado: ' + err.message, 'error');
+          document.getElementById('auth-msg').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
       } finally {
-        btn.classList.remove('loading');
-        btn.disabled = false;
+        if (!timedOut) {
+          btn.classList.remove('loading');
+          btn.disabled = false;
+        }
       }
     });
 

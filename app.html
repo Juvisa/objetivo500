@@ -143,7 +143,12 @@
         }
         if (!profile) { window.location.href = './login.html'; return null; }
         if (requiredRole && profile.role !== requiredRole) {
-          window.location.href = profile.role === 'parent' ? './dashboard-padre.html' : './app.html';
+          if (profile.role === 'parent') {
+            window.location.href = './dashboard-padre.html';
+          } else {
+            // role='elite', 'familia', etc. → acceso válido, no redirigir en loop
+            return profile;
+          }
           return null;
         }
         return profile;
